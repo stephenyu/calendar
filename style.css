@@ -1,0 +1,114 @@
+body {
+    font-family: monospace;
+    margin: 0;
+    padding: 0;
+}
+
+#main-container {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+}
+
+#calendar-container {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#config-container {
+    width: 30%;
+    padding: 20px;
+    box-sizing: border-box;
+    border-left: 1px solid #ccc;
+}
+
+#config-input {
+    width: 100%;
+    height: calc(100% - 60px);
+    font-family: monospace;
+    font-size: 14px;
+}
+
+#save-button {
+    display: block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+}
+
+.calendar {
+    margin: 20px 0;
+}
+
+.calendar h2 {
+    text-align: center;
+    font-size: 24px;
+}
+
+.months-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 20px;
+    max-width: 800px;
+}
+
+.month {
+    box-sizing: border-box;
+}
+
+.month-name {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 18px;
+}
+
+.weekday-header {
+    display: flex;
+}
+
+.weekday, .date {
+    width: 28px;
+    height: 28px;
+    text-align: center;
+    line-height: 28px;
+    margin: 1px;
+    font-size: 14px;
+}
+
+.weekday {
+    font-weight: bold;
+}
+
+.dates {
+    display: flex;
+    flex-wrap: wrap;
+    width: 210px; /* 7 * (28px + 2px margin) */
+    margin: 0 auto;
+}
+
+@media screen and (max-width: 1000px) {
+    .months-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media screen and (max-width: 600px) {
+    #main-container {
+        flex-direction: column;
+    }
+
+    #config-container {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid #ccc;
+    }
+
+    .months-container {
+        grid-template-columns: 1fr;
+    }
+}
