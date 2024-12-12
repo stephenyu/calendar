@@ -1,150 +1,268 @@
-// Function to generate the calendar
+// Use let and const for better code style
+
+// DOM Elements
+const configInput = document.getElementById('config-input');
+const saveButton = document.getElementById('save-button');
+const calendarContainer = document.getElementById('calendar-container');
+
+// Modal Elements
+const modal = document.getElementById('color-picker-modal');
+const closeBtn = modal.querySelector('.close');
+const colorInput = document.getElementById('color-input');
+const applyColorBtn = document.getElementById('apply-color');
+
+// State
+let lastHashPosition = null; // Remember where '#' was typed
+
+// Event: Show modal when '#' is typed in config input
+configInput.addEventListener('keydown', (e) => {
+    if (e.key === '#') {
+        // Wait until character is inserted
+        setTimeout(() => {
+            lastHashPosition = configInput.selectionStart - 1;
+            openModal();
+        }, 0);
+    }
+});
+
+function openModal() {
+    modal.style.display = 'block';
+    colorInput.focus();
+}
+
+function closeModal() {
+    modal.style.display = 'none';
+}
+
+closeBtn.addEventListener('click', closeModal);
+
+window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        closeModal();
+    }
+});
+
+applyColorBtn.addEventListener('click', () => {
+    const chosenColor = colorInput.value; // e.g. #ff0000
+    if (lastHashPosition !== null) {
+        insertColorAtPosition(chosenColor);
+    }
+    closeModal();
+});
+
+function insertColorAtPosition(color) {
+    const text = configInput.value;
+    const before = text.slice(0, lastHashPosition);
+    const after = text.slice(lastHashPosition + 1); // remove the '#'
+    const newText = before + color + after;
+    configInput.value = newText;
+
+    // Move the cursor after the inserted color
+    const cursorPos = before.length + color.length;
+    configInput.selectionStart = cursorPos;
+    configInput.selectionEnd = cursorPos;
+    configInput.focus();
+    lastHashPosition = null;
+}
+
 function generateCalendar(years, highlightPeriods) {
-    // Clear any existing calendar
-    var calendarContainer = document.getElementById('calendar-container');
     calendarContainer.innerHTML = '';
 
-    // Parse and normalize the date strings into Date objects
-    highlightPeriods = highlightPeriods.map(function(period, index) {
-        var newPeriod = Object.assign({}, period);
-        newPeriod.order = index; // Keep track of the order
+    // Normalize highlight periods
+    const normalizedPeriods = highlightPeriods.map((period, index) => {
+        const newPeriod = { ...period, order: index };
         if (period.start) {
             newPeriod.startDate = new Date(period.start);
-            newPeriod.startDate.setHours(0, 0, 0, 0); // Normalize to midnight
+            newPeriod.startDate.setHours(0, 0, 0, 0);
         }
         if (period.end) {
             newPeriod.endDate = new Date(period.end);
-            newPeriod.endDate.setHours(0, 0, 0, 0); // Normalize to midnight
+            newPeriod.endDate.setHours(0, 0, 0, 0);
         }
         if (period.dates) {
-            newPeriod.dateObjects = period.dates.map(function(dateStr) {
-                var date = new Date(dateStr);
-                date.setHours(0, 0, 0, 0); // Normalize to midnight
-                return date;
+            newPeriod.dateObjects = period.dates.map((dateStr) => {
+                const d = new Date(dateStr);
+                d.setHours(0, 0, 0, 0);
+                return d;
             });
         }
         return newPeriod;
     });
 
-    // Generate the calendar for each year
-    years.forEach(function(year) {
-        var calendar = document.createElement('div');
-        calendar.className = 'calendar';
+    const monthRows = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [9, 10, 11]
+    ];
 
-        // Create a header for the year
-        var yearHeader = document.createElement('h2');
+    for (const year of years) {
+        const calendarDiv = document.createElement('div');
+        calendarDiv.className = 'calendar';
+
+        const yearHeader = document.createElement('h2');
         yearHeader.textContent = year;
-        calendar.appendChild(yearHeader);
+        calendarDiv.appendChild(yearHeader);
 
-        var monthsContainer = document.createElement('div');
-        monthsContainer.className = 'months-container';
+        // Track which highlight periods are used this year
+        const usedPeriods = new Set();
 
-        for (var month = 0; month < 12; month++) {
-            var monthDiv = document.createElement('div');
-            monthDiv.className = 'month';
+        // Create the year table
+        const yearTable = document.createElement('table');
+        yearTable.className = 'year-table';
 
-            // Month name
-            var monthNameDiv = document.createElement('div');
-            monthNameDiv.className = 'month-name';
-            monthNameDiv.textContent = new Date(year, month).toLocaleString('default', { month: 'long' });
-            monthDiv.appendChild(monthNameDiv);
+        const tbody = document.createElement('tbody');
 
-            // Weekday headers
-            var weekdayHeaderDiv = document.createElement('div');
-            weekdayHeaderDiv.className = 'weekday-header';
-            var weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-            weekdays.forEach(function(weekday) {
-                var weekdayDiv = document.createElement('div');
-                weekdayDiv.className = 'weekday';
-                weekdayDiv.textContent = weekday;
-                weekdayHeaderDiv.appendChild(weekdayDiv);
-            });
-            monthDiv.appendChild(weekdayHeaderDiv);
+        for (const rowMonths of monthRows) {
+            const tr = document.createElement('tr');
 
-            // Dates
-            var datesDiv = document.createElement('div');
-            datesDiv.className = 'dates';
-
-            // Get the first day of the month
-            var firstDay = new Date(year, month, 1).getDay();
-            // Get the number of days in the month
-            var daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            // Fill in the blanks before the first day
-            for (var i = 0; i < firstDay; i++) {
-                var blankDiv = document.createElement('div');
-                blankDiv.className = 'date';
-                datesDiv.appendChild(blankDiv);
+            for (const monthIndex of rowMonths) {
+                const td = document.createElement('td');
+                td.appendChild(createMonthTable(year, monthIndex, normalizedPeriods, usedPeriods));
+                tr.appendChild(td);
             }
 
-            // Create date elements
-            for (var day = 1; day <= daysInMonth; day++) {
-                var dateDiv = document.createElement('div');
-                dateDiv.className = 'date';
+            tbody.appendChild(tr);
+        }
 
-                var dateNumberDiv = document.createElement('div');
-                dateNumberDiv.className = 'date-number';
-                dateNumberDiv.textContent = day;
-                dateDiv.appendChild(dateNumberDiv);
+        yearTable.appendChild(tbody);
+        calendarDiv.appendChild(yearTable);
 
-                // Get the date object and normalize it
-                var dateObj = new Date(year, month, day);
-                dateObj.setHours(0, 0, 0, 0); // Normalize to midnight
+        // Add legend for labeled periods used this year
+        const labeledPeriods = Array.from(usedPeriods)
+            .map(i => normalizedPeriods[i])
+            .filter(p => p.label);
 
-                // Collect all colors for this date
-                var colors = [];
+        if (labeledPeriods.length > 0) {
+            const legendDiv = document.createElement('div');
+            legendDiv.className = 'legend';
 
-                highlightPeriods.forEach(function(period) {
+            for (const p of labeledPeriods) {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+
+                const legendColor = document.createElement('div');
+                legendColor.className = 'legend-color';
+                legendColor.style.backgroundColor = p.color;
+
+                const legendLabel = document.createElement('span');
+                legendLabel.textContent = p.label;
+
+                legendItem.appendChild(legendColor);
+                legendItem.appendChild(legendLabel);
+                legendDiv.appendChild(legendItem);
+            }
+
+            calendarDiv.appendChild(legendDiv);
+        }
+
+        calendarContainer.appendChild(calendarDiv);
+    }
+}
+
+function createMonthTable(year, month, periods, usedPeriods) {
+    const monthTable = document.createElement('table');
+    monthTable.className = 'month-table';
+
+    const thead = document.createElement('thead');
+    const monthNameRow = document.createElement('tr');
+    monthNameRow.className = 'month-name-row';
+    const monthNameTh = document.createElement('th');
+    monthNameTh.colSpan = 7;
+    monthNameTh.textContent = new Date(year, month).toLocaleString('default', { month: 'long' }) + ' ' + year;
+    monthNameRow.appendChild(monthNameTh);
+    thead.appendChild(monthNameRow);
+
+    const weekdayRow = document.createElement('tr');
+    weekdayRow.className = 'weekday-row';
+    const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+    for (const wday of weekdays) {
+        const th = document.createElement('th');
+        th.textContent = wday;
+        weekdayRow.appendChild(th);
+    }
+    thead.appendChild(weekdayRow);
+
+    monthTable.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // Total cells needed
+    const totalCells = firstDay + daysInMonth;
+    const weeks = Math.ceil(totalCells / 7);
+
+    let currentDay = 1;
+
+    for (let w = 0; w < weeks; w++) {
+        const tr = document.createElement('tr');
+
+        for (let d = 0; d < 7; d++) {
+            const td = document.createElement('td');
+
+            const cellIndex = w * 7 + d;
+            if (cellIndex >= firstDay && currentDay <= daysInMonth) {
+                // Valid day
+                td.textContent = currentDay;
+                const dateObj = new Date(year, month, currentDay);
+                dateObj.setHours(0, 0, 0, 0);
+
+                const colors = [];
+                for (let i = 0; i < periods.length; i++) {
+                    const period = periods[i];
                     if (period.startDate && period.endDate) {
                         if (dateObj >= period.startDate && dateObj <= period.endDate) {
                             colors.push(period.color);
+                            usedPeriods.add(i);
                         }
                     } else if (period.dateObjects) {
-                        period.dateObjects.forEach(function(d) {
-                            if (dateObj.getTime() === d.getTime()) {
+                        for (const dObj of period.dateObjects) {
+                            if (dateObj.getTime() === dObj.getTime()) {
                                 colors.push(period.color);
+                                usedPeriods.add(i);
                             }
-                        });
+                        }
                     }
-                });
-
-                // Apply colors
-                if (colors.length > 0) {
-                    var gradientString = generateGradient(colors);
-                    dateDiv.style.background = gradientString;
                 }
 
-                datesDiv.appendChild(dateDiv);
+                if (colors.length > 0) {
+                    td.style.background = generateGradient(colors);
+                }
+
+                currentDay++;
+            } else {
+                // Blank cell
+                td.textContent = '';
             }
 
-            monthDiv.appendChild(datesDiv);
-            monthsContainer.appendChild(monthDiv);
+            tr.appendChild(td);
         }
 
-        calendar.appendChild(monthsContainer);
-        calendarContainer.appendChild(calendar);
-    });
+        tbody.appendChild(tr);
+    }
+
+    monthTable.appendChild(tbody);
+    return monthTable;
 }
 
-// Function to generate the gradient string based on the colors array
 function generateGradient(colors) {
-    var percentage = 100 / colors.length;
-    var colorStops = colors.map(function(color, index) {
-        var start = percentage * index;
-        var end = percentage * (index + 1);
-        return color + ' ' + start + '%, ' + color + ' ' + end + '%';
+    const percentage = 100 / colors.length;
+    const colorStops = colors.map((color, index) => {
+        const start = percentage * index;
+        const end = percentage * (index + 1);
+        return `${color} ${start}%, ${color} ${end}%`;
     });
-    return 'linear-gradient(to bottom, ' + colorStops.join(', ') + ')';
+    return `linear-gradient(to bottom, ${colorStops.join(', ')})`;
 }
 
-// Function to get configuration from URL parameter
 function getConfigFromURL() {
-    var params = new URLSearchParams(window.location.search);
-    var configParam = params.get('config');
+    const params = new URLSearchParams(window.location.search);
+    const configParam = params.get('config');
     if (configParam) {
         try {
-            // Decode the base64 encoded configuration
-            var decodedConfig = atob(configParam);
+            const decodedConfig = atob(configParam);
             return decodedConfig;
         } catch (e) {
             alert('Error decoding configuration from URL: ' + e.message);
@@ -153,55 +271,50 @@ function getConfigFromURL() {
     return null;
 }
 
-// Function to update URL with current configuration
 function updateURLWithConfig(config) {
-    var encodedConfig = btoa(config);
-    var newURL = window.location.protocol + '//' + window.location.host + window.location.pathname + '?config=' + encodedConfig;
+    const encodedConfig = btoa(config);
+    const newURL = `${window.location.protocol}//${window.location.host}${window.location.pathname}?config=${encodedConfig}`;
     window.history.replaceState({ path: newURL }, '', newURL);
 }
 
-// Event listener for the Save button
-document.getElementById('save-button').addEventListener('click', function() {
-    var input = document.getElementById('config-input').value;
+// Save button event
+saveButton.addEventListener('click', () => {
+    const input = configInput.value;
     try {
-        // Parse the YAML input
-        var config = jsyaml.load(input);
+        const config = jsyaml.load(input);
+        const years = config.years;
+        const highlightPeriods = config.highlightPeriods;
 
-        var years = config.years;
-        var highlightPeriods = config.highlightPeriods;
-
-        // Validate years and highlightPeriods
         if (!Array.isArray(years) || !Array.isArray(highlightPeriods)) {
             throw new Error('Invalid configuration format.');
         }
 
         generateCalendar(years, highlightPeriods);
-
-        // Update URL with the current configuration
         updateURLWithConfig(input);
     } catch (e) {
         alert('Error parsing configuration: ' + e.message);
     }
 });
 
-// Initialize the application
+// Initialize application
 function init() {
-    var configFromURL = getConfigFromURL();
-    var configInputElement = document.getElementById('config-input');
+    const configFromURL = getConfigFromURL();
     if (configFromURL) {
-        configInputElement.value = configFromURL;
+        configInput.value = configFromURL;
     } else {
-        // Set default configuration in the textarea
-        configInputElement.value =
+        // Default configuration including a labeled period
+        configInput.value =
 `years:
   - 2024
 highlightPeriods:
   - start: '2024-12-23'
     end: '2024-12-31'
     color: '#ffd700'  # gold
+    label: 'Holiday Break'
   - dates:
       - '2024-12-25'
     color: '#ff0000'  # red
+    label: 'Christmas Day'
   - dates:
       - '2024-12-25'
     color: '#0000ff'  # blue
@@ -210,8 +323,8 @@ highlightPeriods:
     color: '#008000'  # green
 `;
     }
-    // Trigger the Save button to generate the calendar
-    document.getElementById('save-button').click();
+    // Trigger a save to render the initial calendar
+    saveButton.click();
 }
 
 init();
