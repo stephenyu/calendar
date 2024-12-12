@@ -5,8 +5,9 @@ function generateCalendar(years, highlightPeriods) {
     calendarContainer.innerHTML = '';
 
     // Parse and normalize the date strings into Date objects
-    highlightPeriods = highlightPeriods.map(function(period) {
+    highlightPeriods = highlightPeriods.map(function(period, index) {
         var newPeriod = Object.assign({}, period);
+        newPeriod.order = index; // Keep track of the order
         if (period.start) {
             newPeriod.startDate = new Date(period.start);
             newPeriod.startDate.setHours(0, 0, 0, 0); // Normalize to midnight
@@ -80,26 +81,38 @@ function generateCalendar(years, highlightPeriods) {
             for (var day = 1; day <= daysInMonth; day++) {
                 var dateDiv = document.createElement('div');
                 dateDiv.className = 'date';
-                dateDiv.textContent = day;
+
+                var dateNumberDiv = document.createElement('div');
+                dateNumberDiv.className = 'date-number';
+                dateNumberDiv.textContent = day;
+                dateDiv.appendChild(dateNumberDiv);
 
                 // Get the date object and normalize it
                 var dateObj = new Date(year, month, day);
                 dateObj.setHours(0, 0, 0, 0); // Normalize to midnight
 
-                // Check if this date is in any of the highlight periods
+                // Collect all colors for this date
+                var colors = [];
+
                 highlightPeriods.forEach(function(period) {
                     if (period.startDate && period.endDate) {
                         if (dateObj >= period.startDate && dateObj <= period.endDate) {
-                            dateDiv.style.backgroundColor = period.color;
+                            colors.push(period.color);
                         }
                     } else if (period.dateObjects) {
                         period.dateObjects.forEach(function(d) {
                             if (dateObj.getTime() === d.getTime()) {
-                                dateDiv.style.backgroundColor = period.color;
+                                colors.push(period.color);
                             }
                         });
                     }
                 });
+
+                // Apply colors
+                if (colors.length > 0) {
+                    var gradientString = generateGradient(colors);
+                    dateDiv.style.background = gradientString;
+                }
 
                 datesDiv.appendChild(dateDiv);
             }
@@ -111,6 +124,17 @@ function generateCalendar(years, highlightPeriods) {
         calendar.appendChild(monthsContainer);
         calendarContainer.appendChild(calendar);
     });
+}
+
+// Function to generate the gradient string based on the colors array
+function generateGradient(colors) {
+    var percentage = 100 / colors.length;
+    var colorStops = colors.map(function(color, index) {
+        var start = percentage * index;
+        var end = percentage * (index + 1);
+        return color + ' ' + start + '%, ' + color + ' ' + end + '%';
+    });
+    return 'linear-gradient(to bottom, ' + colorStops.join(', ') + ')';
 }
 
 // Function to get configuration from URL parameter
@@ -171,24 +195,19 @@ function init() {
         configInputElement.value =
 `years:
   - 2024
-  - 2025
 highlightPeriods:
-  - start: '2024-12-10'
-    end: '2024-12-15'
-    color: '#90ee90'  # lightgreen
-  - dates:
-      - '2024-12-25'
-      - '2025-01-01'
-    color: 'pink'
-  - start: '2025-02-14'
-    end: '2025-02-14'
-    color: '#ff0000'  # red
-  - start: '2025-03-01'
-    end: '2025-03-05'
-    color: '#add8e6'  # lightblue
   - start: '2024-12-23'
     end: '2024-12-31'
     color: '#ffd700'  # gold
+  - dates:
+      - '2024-12-25'
+    color: '#ff0000'  # red
+  - dates:
+      - '2024-12-25'
+    color: '#0000ff'  # blue
+  - dates:
+      - '2024-12-25'
+    color: '#008000'  # green
 `;
     }
     // Trigger the Save button to generate the calendar

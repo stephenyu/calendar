@@ -52,7 +52,7 @@ body {
 .months-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    grid-gap: 20px;
+    grid-gap: 32px; /* Increased padding between months and rows */
     max-width: 800px;
 }
 
@@ -77,7 +77,8 @@ body {
     text-align: center;
     line-height: 28px;
     margin: 1px;
-    font-size: 14px;
+    font-size: 16px; /* Increased date font size */
+    position: relative;
 }
 
 .weekday {
@@ -89,6 +90,17 @@ body {
     flex-wrap: wrap;
     width: 210px; /* 7 * (28px + 2px margin) */
     margin: 0 auto;
+}
+
+.date-number {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 28px;
+    height: 28px;
+    text-align: center;
+    line-height: 28px;
+    z-index: 2;
 }
 
 @media screen and (max-width: 1000px) {
