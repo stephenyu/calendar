@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "cssnano": "^7.0.6",
+    "postcss-cli": "^11.0.0",
+    "terser": "^5.37.0"
+  },
+   "scripts": {
+    "build:js": "terser src/script.js --compress --mangle --output script.min.js",
+    "build:css": "postcss src/style.css --output style.min.css",
+    "build": "npm run build:js && npm run build:css"
+  }
+}
