@@ -38,8 +38,14 @@ A web-based calendar application that allows users to create customized yearly c
    ```
 
 4. **Build for production**:
+
    ```bash
    npm run build
+   ```
+
+5. **Test the built application**:
+   ```bash
+   npm run serve:dist
    ```
 
 ## Configuration Format
@@ -99,18 +105,41 @@ calendar/
 │   ├── script.js      # Main application logic
 │   ├── style.css      # Styles and layout
 │   └── opt.js         # YAML compression utilities
+├── scripts/
+│   └── build.js       # Cross-platform build script
+├── __tests__/         # Test files
 ├── index.html         # Main HTML file
 ├── package.json       # Dependencies and scripts
 └── README.md         # Documentation
 ```
 
+### Build Output
+
+When you run `npm run build`, the production files are created in the `dist/` folder:
+
+```
+dist/
+├── index.html         # Production HTML
+├── script.min.js      # Minified JavaScript
+├── style.min.css      # Minified CSS
+├── serve.js           # Simple Node.js server
+└── LICENSE           # License file
+```
+
+The `dist/` folder contains everything needed for deployment.
+
 ### Scripts
 
-- `npm run build`: Build minified production files
+- `npm run build`: Build production files to dist/ folder
+- `npm run build:node`: Cross-platform build using Node.js (alternative)
 - `npm run build:js`: Build JavaScript only
 - `npm run build:css`: Build CSS only
-- `npm run dev`: Start development server (to be added)
-- `npm run test`: Run tests (to be added)
+- `npm run serve:dist`: Serve built application from dist/ folder
+- `npm run serve:dist:node`: Serve using Node.js server (cross-platform)
+- `npm run dev`: Start development server
+- `npm run test`: Run tests
+- `npm run lint`: Check code quality
+- `npm run validate`: Run linting and tests
 
 ### Dependencies
 
