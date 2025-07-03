@@ -1,4 +1,12 @@
-// Use let and const for better code style
+/**
+ * @fileoverview Customizable Calendar Application
+ * A web-based calendar application with YAML configuration support.
+ * Features include multi-year view, color-coded periods, and URL sharing.
+ * 
+ * @version 1.0.0
+ * @author Stephen Yu
+ */
+
 // DOM Elements
 const configInput = document.getElementById('config-input');
 const saveButton = document.getElementById('save-button');
@@ -11,7 +19,7 @@ const colorInput = document.getElementById('color-input');
 const applyColorBtn = document.getElementById('apply-color');
 
 // State
-let lastHashPosition = null; // Remember where '#' was typed
+let lastHashPosition = null; // Remember where '#' was typed for color picker
 
 // Event: Show modal when '#' is typed in config input
 configInput.addEventListener('keydown', (e) => {
@@ -24,11 +32,19 @@ configInput.addEventListener('keydown', (e) => {
     }
 });
 
+/**
+ * Opens the color picker modal and focuses the color input
+ * @function openModal
+ */
 function openModal() {
     modal.style.display = 'block';
     colorInput.focus();
 }
 
+/**
+ * Closes the color picker modal
+ * @function closeModal
+ */
 function closeModal() {
     modal.style.display = 'none';
 }
@@ -49,6 +65,11 @@ applyColorBtn.addEventListener('click', () => {
     closeModal();
 });
 
+/**
+ * Inserts a color value at the position where '#' was typed
+ * @function insertColorAtPosition
+ * @param {string} color - The color value to insert (e.g., '#ff0000')
+ */
 function insertColorAtPosition(color) {
     const text = configInput.value;
     const before = text.slice(0, lastHashPosition);
@@ -64,6 +85,17 @@ function insertColorAtPosition(color) {
     lastHashPosition = null;
 }
 
+/**
+ * Generates calendar displays for multiple years with highlighted periods
+ * @function generateCalendar
+ * @param {number[]} years - Array of years to display
+ * @param {Object[]} highlightPeriods - Array of period objects to highlight
+ * @param {string} [highlightPeriods[].start] - Start date for date range (YYYY-MM-DD)
+ * @param {string} [highlightPeriods[].end] - End date for date range (YYYY-MM-DD)
+ * @param {string[]} [highlightPeriods[].dates] - Array of individual dates (YYYY-MM-DD)
+ * @param {string} highlightPeriods[].color - CSS color value for highlighting
+ * @param {string} [highlightPeriods[].label] - Optional label for legend
+ */
 function generateCalendar(years, highlightPeriods) {
     calendarContainer.innerHTML = '';
 
@@ -159,6 +191,15 @@ function generateCalendar(years, highlightPeriods) {
     }
 }
 
+/**
+ * Creates a month table element with highlighted dates based on periods
+ * @function createMonthTable
+ * @param {number} year - The year for the month
+ * @param {number} month - The month (0-11, where 0 is January)
+ * @param {Object[]} periods - Array of normalized period objects
+ * @param {Set} usedPeriods - Set to track which periods are used (for legend)
+ * @returns {HTMLTableElement} The generated month table element
+ */
 function createMonthTable(year, month, periods, usedPeriods) {
     const monthTable = document.createElement('table');
     monthTable.className = 'month-table';
@@ -246,6 +287,12 @@ function createMonthTable(year, month, periods, usedPeriods) {
     return monthTable;
 }
 
+/**
+ * Generates a CSS linear gradient from multiple colors
+ * @function generateGradient
+ * @param {string[]} colors - Array of CSS color values
+ * @returns {string} CSS linear-gradient string
+ */
 function generateGradient(colors) {
     const percentage = 100 / colors.length;
     const colorStops = colors.map((color, index) => {
@@ -260,6 +307,12 @@ function generateGradient(colors) {
 
 // Decompress
 
+/**
+ * Compresses YAML configuration data for URL sharing
+ * @function compressYAML
+ * @param {string} yamlString - The YAML configuration string
+ * @returns {string|null} Compressed JSON string or null if error
+ */
 function compressYAML(yamlString) {
   try {
     const parsedData = jsyaml.load(yamlString); // Parse YAML to JavaScript object
@@ -317,6 +370,12 @@ function compressYAML(yamlString) {
   }
 }
 
+/**
+ * Decompresses JSON data back to YAML configuration
+ * @function decompressJSON
+ * @param {string} compressedYamlString - The compressed JSON string
+ * @returns {string|null} YAML configuration string or null if error
+ */
 function decompressJSON(compressedYamlString) {
   try {
     // Wrap the string in square brackets before parsing
@@ -376,6 +435,11 @@ function decompressJSON(compressedYamlString) {
   }
 }
 
+/**
+ * Retrieves and decompresses configuration from URL parameters
+ * @function getConfigFromURL
+ * @returns {string|null} Decompressed YAML configuration or null if not found/error
+ */
 function getConfigFromURL() {
     const params = new URLSearchParams(window.location.search);
     const configParam = params.get('config');
@@ -391,6 +455,11 @@ function getConfigFromURL() {
     return null;
 }
 
+/**
+ * Updates the browser URL with compressed configuration data
+ * @function updateURLWithConfig
+ * @param {string} config - The YAML configuration string to compress and store
+ */
 function updateURLWithConfig(config) {
     const compressedJSON = compressYAML(config);
     const compressed = LZString.compressToEncodedURIComponent(compressedJSON);
@@ -417,7 +486,11 @@ saveButton.addEventListener('click', () => {
     }
 });
 
-// Initialize application
+/**
+ * Initializes the calendar application
+ * Sets up default configuration or loads from URL parameters
+ * @function init
+ */
 function init() {
     const configFromURL = getConfigFromURL();
     if (configFromURL) {
