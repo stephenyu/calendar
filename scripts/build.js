@@ -14,12 +14,23 @@ const { execSync } = require('child_process');
  * @returns {void}
  */
 function runCommand(command) {
+  console.log(`Running: ${command}`);
+  execSync(command, { stdio: 'inherit' });
+}
+
+/**
+ * Helper function to run shell commands safely without exiting on error
+ * @param {string} command - The command to execute
+ * @returns {boolean} True if successful, false if error
+ */
+function runCommandSafe(command) {
   try {
     console.log(`Running: ${command}`);
     execSync(command, { stdio: 'inherit' });
+    return true;
   } catch (error) {
     console.error(`Error running command: ${command}`);
-    process.exit(1);
+    return false;
   }
 }
 
@@ -63,11 +74,23 @@ function build() {
   }
   ensureDir('dist');
 
-  // Build JavaScript
-  console.log('📦 Building JavaScript...');
-  runCommand(
-    'npx terser src/script.js --compress --mangle --output dist/script.min.js'
-  );
+  // Try TypeScript compilation first, fall back to JavaScript if it fails
+  console.log('📦 Attempting TypeScript compilation...');
+  const tsSuccess = runCommandSafe('npx tsc');
+
+  if (tsSuccess) {
+    console.log('📦 Building JavaScript from TypeScript...');
+    runCommand(
+      'npx terser dist/script.js --compress --mangle --output dist/script.min.js'
+    );
+  } else {
+    console.log(
+      '⚠️  TypeScript compilation failed, using JavaScript fallback...'
+    );
+    runCommand(
+      'npx terser src/script.js --compress --mangle --output dist/script.min.js'
+    );
+  }
 
   // Build CSS
   console.log('🎨 Building CSS...');

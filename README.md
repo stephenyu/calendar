@@ -97,18 +97,33 @@ highlightPeriods:
 
 ## Development
 
+### TypeScript Migration
+
+This project has been modernized with TypeScript for enhanced development experience and maintainability:
+
+- **Type Safety**: Comprehensive type definitions for all calendar configuration and data structures
+- **Better IDE Support**: Enhanced autocomplete, refactoring, and error detection
+- **Maintainability**: Explicit interfaces make the codebase easier to understand and modify
+- **Backwards Compatibility**: Build process includes JavaScript fallback for compatibility
+
+The TypeScript source files are located in `src/` alongside their JavaScript counterparts. The build process attempts TypeScript compilation first and falls back to JavaScript if compilation fails.
+
 ### Project Structure
 
 ```
 calendar/
 ├── src/
-│   ├── script.js      # Main application logic
-│   ├── style.css      # Styles and layout
-│   └── opt.js         # YAML compression utilities
+│   ├── script.ts      # Main application logic (TypeScript)
+│   ├── script.js      # Main application logic (JavaScript fallback)
+│   ├── opt.ts         # YAML compression utilities (TypeScript)
+│   ├── opt.js         # YAML compression utilities (JavaScript fallback)
+│   ├── types.ts       # TypeScript type definitions
+│   └── style.css      # Styles and layout
 ├── scripts/
 │   └── build.js       # Cross-platform build script
 ├── __tests__/         # Test files
 ├── index.html         # Main HTML file
+├── tsconfig.json      # TypeScript configuration
 ├── package.json       # Dependencies and scripts
 └── README.md         # Documentation
 ```
@@ -132,19 +147,26 @@ The `dist/` folder contains everything needed for deployment.
 
 - `npm run build`: Build production files to dist/ folder
 - `npm run build:node`: Cross-platform build using Node.js (alternative)
-- `npm run build:js`: Build JavaScript only
+- `npm run build:ts`: Compile TypeScript to JavaScript
+- `npm run build:js`: Build JavaScript (with TypeScript compilation)
 - `npm run build:css`: Build CSS only
 - `npm run serve:dist`: Serve built application from dist/ folder
 - `npm run serve:dist:node`: Serve using Node.js server (cross-platform)
 - `npm run dev`: Start development server
 - `npm run test`: Run tests
-- `npm run lint`: Check code quality
+- `npm run lint`: Check code quality (TypeScript and JavaScript)
 - `npm run validate`: Run linting and tests
 
 ### Dependencies
 
 - **js-yaml**: YAML parsing and generation
 - **lz-string**: URL compression for sharing
+
+### Development Dependencies
+
+- **typescript**: TypeScript compiler and language support
+- **@types/js-yaml**: Type definitions for js-yaml
+- **@typescript-eslint/**: TypeScript ESLint plugins and parser
 - **cssnano**: CSS minification
 - **postcss-cli**: CSS processing
 - **terser**: JavaScript minification

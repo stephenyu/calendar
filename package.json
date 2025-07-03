@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "python3 -m http.server 8000",
     "prebuild": "rm -rf dist && mkdir -p dist",
-    "build:js": "terser src/script.js --compress --mangle --output dist/script.min.js",
+    "build:ts": "tsc",
+    "build:js": "npm run build:ts && terser dist/script.js --compress --mangle --output dist/script.min.js",
     "build:css": "postcss src/style.css --output dist/style.min.css",
     "build:html": "cp index.html dist/",
     "build:assets": "cp LICENSE dist/ 2>/dev/null || true",
@@ -14,8 +15,8 @@
     "build:node": "node scripts/build.js",
     "serve:dist": "cd dist && python3 -m http.server 8000",
     "serve:dist:node": "node dist/serve.js",
-    "lint": "eslint src/**/*.js scripts/**/*.js",
-    "lint:fix": "eslint src/**/*.js scripts/**/*.js --fix",
+    "lint": "eslint src/**/*.ts scripts/**/*.js",
+    "lint:fix": "eslint src/**/*.ts scripts/**/*.js --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -34,6 +35,7 @@
     "customizable",
     "frontend",
     "javascript",
+    "typescript",
     "html",
     "css"
   ],
@@ -47,6 +49,11 @@
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.11.19",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "cssnano": "^7.0.6",
     "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
@@ -57,7 +64,8 @@
     "jest-environment-jsdom": "^29.7.0",
     "postcss-cli": "^11.0.0",
     "prettier": "^3.1.1",
-    "terser": "^5.37.0"
+    "terser": "^5.37.0",
+    "typescript": "^5.3.3"
   },
   "engines": {
     "node": ">=16.0.0",
