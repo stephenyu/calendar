@@ -1,5 +1,5 @@
 /**
- * @fileoverview Customizable Calendar Application
+ * @fileoverview Customizable Calendar Application (Bundled for Development)
  * A web-based calendar application with YAML configuration support.
  * Features include multi-year view, color-coded periods, and URL sharing.
  *
@@ -7,16 +7,89 @@
  * @author Stephen Yu
  */
 
-import {
-  CalendarConfig,
-  HighlightPeriod,
-  NormalizedPeriod,
-  CompressedData,
-  CompressedPeriod,
-  MONTH_NAMES,
-  MONTH_ROWS,
-  Month
-} from './types.js';
+// ============================================================================
+// TYPE DEFINITIONS (inlined from types.ts)
+// ============================================================================
+
+// Configuration Types
+interface CalendarConfig {
+  years: number[];
+  highlightPeriods: HighlightPeriod[];
+  timezone?: string;
+}
+
+interface HighlightPeriod {
+  start?: string;
+  end?: string;
+  dates?: string[];
+  color: string;
+  label?: string;
+}
+
+// Normalized Period Types (used internally)
+interface NormalizedPeriod extends HighlightPeriod {
+  order: number;
+  startDate?: Date;
+  endDate?: Date;
+  dateObjects?: Date[];
+}
+
+// Compression/Decompression Types
+type CompressedData = [
+  number[], // compressed years
+  CompressedPeriod[], // compressed highlight periods
+  string? // timezone (optional for backward compatibility)
+];
+
+type CompressedPeriod =
+  | [number, number, string, string?] // [start, dayDifference, color, label?] for date ranges
+  | [number, string, string?] // [date, color, label?] for single dates
+  | [number[], string, string?] // [dates array, color, label?] for multiple dates
+  | (string | number)[]; // flexible array type for mixed content
+
+// Utility Types
+type Month = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
+
+type MonthName =
+  | 'January'
+  | 'February'
+  | 'March'
+  | 'April'
+  | 'May'
+  | 'June'
+  | 'July'
+  | 'August'
+  | 'September'
+  | 'October'
+  | 'November'
+  | 'December';
+
+// Constants
+const MONTH_NAMES: MonthName[] = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December'
+];
+
+const MONTH_ROWS: Month[][] = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [9, 10, 11]
+];
+
+// ============================================================================
+// MAIN APPLICATION CODE
+// ============================================================================
 
 // External library declarations
 declare const LZString: {
@@ -674,3 +747,4 @@ highlightPeriods:
 }
 
 init();
+

@@ -11,6 +11,7 @@ script.min.js
 style.min.css
 dist/
 build/
+src/*.js
 
 # Testing
 coverage/

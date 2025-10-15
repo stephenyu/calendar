@@ -4,23 +4,14 @@
   "description": "A web-based calendar application with YAML configuration support",
   "main": "index.html",
   "scripts": {
-    "dev": "python3 -m http.server 8000",
-    "prebuild": "rm -rf dist && mkdir -p dist",
-    "build:ts": "tsc",
-    "build:js": "npm run build:ts && terser dist/script.js --compress --mangle --output dist/script.min.js",
-    "build:css": "postcss src/style.css --output dist/style.min.css",
-    "build:html": "cp index.html dist/",
-    "build:assets": "cp LICENSE dist/ 2>/dev/null || true",
-    "build": "npm run prebuild && npm run build:js && npm run build:css && npm run build:html && npm run build:assets",
-    "build:node": "node scripts/build.js",
-    "serve:dist": "cd dist && python3 -m http.server 8000",
-    "serve:dist:node": "node dist/serve.js",
+    "dev": "tsc -p tsconfig.dev.json && cp dist/script-bundle.js script.min.js && cp src/style.css style.min.css && python3 -m http.server 8000",
+    "build": "node scripts/build.js",
     "lint": "eslint src/**/*.ts scripts/**/*.js",
     "lint:fix": "eslint src/**/*.ts scripts/**/*.js --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "clean": "rm -rf dist && rm -f script.min.js style.min.css",
+    "clean": "rm -rf dist && rm -f src/*.js script.min.js style.min.css",
     "validate": "npm run lint && npm run test",
     "start": "npm run dev"
   },
@@ -46,11 +37,13 @@
   },
   "homepage": "https://stephenyu.github.io/calendar/",
   "dependencies": {
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.0",
+    "luxon": "^3.4.4"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "@types/js-yaml": "^4.0.9",
+    "@types/luxon": "^3.4.2",
     "@types/node": "^20.11.19",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",

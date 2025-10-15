@@ -7,6 +7,7 @@
 export interface CalendarConfig {
   years: number[];
   highlightPeriods: HighlightPeriod[];
+  timezone?: string;
 }
 
 export interface HighlightPeriod {
@@ -28,7 +29,8 @@ export interface NormalizedPeriod extends HighlightPeriod {
 // Compression/Decompression Types
 export type CompressedData = [
   number[], // compressed years
-  CompressedPeriod[] // compressed highlight periods
+  CompressedPeriod[], // compressed highlight periods
+  string? // timezone (optional for backward compatibility)
 ];
 
 export type CompressedPeriod =

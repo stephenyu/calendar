@@ -76,13 +76,15 @@ function build() {
 
   // Try TypeScript compilation first, fall back to JavaScript if it fails
   console.log('📦 Attempting TypeScript compilation...');
-  const tsSuccess = runCommandSafe('npx tsc');
+  const tsSuccess = runCommandSafe('npx tsc -p tsconfig.prod.json');
 
   if (tsSuccess) {
     console.log('📦 Building JavaScript from TypeScript...');
     runCommand(
       'npx terser dist/script.js --compress --mangle --output dist/script.min.js'
     );
+    console.log('🧹 Cleaning up intermediate JavaScript files...');
+    runCommandSafe('rm -f dist/script.js dist/opt.js dist/types.js');
   } else {
     console.log(
       '⚠️  TypeScript compilation failed, using JavaScript fallback...'
