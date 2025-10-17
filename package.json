@@ -10,7 +10,6 @@
     "lint:fix": "eslint src/**/*.ts scripts/**/*.js --fix",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
     "clean": "rm -rf dist && rm -f src/*.js script.min.js style.min.css",
     "validate": "npm run lint && npm run test",
     "start": "npm run dev"
@@ -58,6 +57,7 @@
     "postcss-cli": "^11.0.0",
     "prettier": "^3.1.1",
     "terser": "^5.37.0",
+    "ts-jest": "^29.4.5",
     "typescript": "^5.3.3"
   },
   "engines": {
