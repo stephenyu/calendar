@@ -286,7 +286,7 @@ function createMonthTable(
   monthNameRow.className = 'month-name-row';
   const monthNameTh: HTMLTableCellElement = document.createElement('th');
   monthNameTh.colSpan = 7;
-  monthNameTh.textContent = MONTH_NAMES[month] + ' ' + year;
+  monthNameTh.textContent = `${MONTH_NAMES[month]} ${year}`;
   monthNameRow.appendChild(monthNameTh);
   thead.appendChild(monthNameRow);
 
@@ -421,8 +421,7 @@ function compressYAML(yamlString: string): string | null {
                 dayDifference,
                 period.color
               ];
-              if (period.label)
-                (result as [number, number, string, string]).push(period.label);
+              if (period.label) { (result as [number, number, string, string]).push(period.label); }
               return result;
             } else if (period.dates && period.color) {
               // Optimise multiple dates
@@ -438,8 +437,7 @@ function compressYAML(yamlString: string): string | null {
                   sortedDates[0]!,
                   period.color
                 ];
-                if (period.label)
-                  (result as [number, string, string]).push(period.label);
+                if (period.label) { (result as [number, string, string]).push(period.label); }
                 return result;
               } else {
                 // Multiple dates: store as [base, diff1, diff2, ...]
@@ -453,8 +451,7 @@ function compressYAML(yamlString: string): string | null {
                   [baseDate, ...differences],
                   period.color
                 ];
-                if (period.label)
-                  (result as [number[], string, string]).push(period.label);
+                if (period.label) { (result as [number[], string, string]).push(period.label); }
                 return result;
               }
             }
@@ -520,7 +517,7 @@ function decompressJSON(compressedYamlString: string): string | null {
                 end: endDate,
                 color: period[2] as string
               };
-              if (period[3]) result.label = period[3] as string;
+              if (period[3]) { result.label = period[3] as string; }
               return result;
 
               // Detect single or multiple dates
@@ -541,7 +538,7 @@ function decompressJSON(compressedYamlString: string): string | null {
                 dates,
                 color: period[1] as string
               };
-              if (period[2]) result.label = period[2] as string;
+              if (period[2]) { result.label = period[2] as string; }
               return result;
             } else {
               // Single date
@@ -553,7 +550,7 @@ function decompressJSON(compressedYamlString: string): string | null {
                 dates: [date],
                 color: period[1] as string
               };
-              if (period[2]) result.label = period[2] as string;
+              if (period[2]) { result.label = period[2] as string; }
               return result;
             }
           }
@@ -589,7 +586,7 @@ function getConfigFromURL(): string | null {
       return decompressed;
     } catch (e) {
       const error = e as Error;
-      alert('Error decoding configuration from URL: ' + error.message);
+      alert(`Error decoding configuration from URL: ${error.message}`);
     }
   }
   return null;
@@ -629,7 +626,7 @@ saveButton.addEventListener('click', (): void => {
     updateURLWithConfig(jsyaml.dump(configWithTimezone));
   } catch (e) {
     const error = e as Error;
-    alert('Error parsing configuration: ' + error.message);
+    alert(`Error parsing configuration: ${error.message}`);
   }
 });
 

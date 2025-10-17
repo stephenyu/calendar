@@ -52,8 +52,7 @@ export function compressYAML(yamlString: string): string | null {
                 dayDifference,
                 period.color
               ];
-              if (period.label)
-                (result as [number, number, string, string]).push(period.label);
+              if (period.label) { (result as [number, number, string, string]).push(period.label); }
               return result;
             } else if (period.dates && period.color) {
               // Optimize multiple dates
@@ -69,8 +68,7 @@ export function compressYAML(yamlString: string): string | null {
                   sortedDates[0]!,
                   period.color
                 ];
-                if (period.label)
-                  (result as [number, string, string]).push(period.label);
+                if (period.label) { (result as [number, string, string]).push(period.label); }
                 return result;
               } else {
                 // Multiple dates: store as [base, diff1, diff2, ...]
@@ -84,8 +82,7 @@ export function compressYAML(yamlString: string): string | null {
                   [baseDate, ...differences],
                   period.color
                 ];
-                if (period.label)
-                  (result as [number[], string, string]).push(period.label);
+                if (period.label) { (result as [number[], string, string]).push(period.label); }
                 return result;
               }
             }
@@ -146,7 +143,7 @@ export function decompressJSON(compressedYamlString: string): string | null {
                 end: endDate,
                 color: period[2] as string
               };
-              if (period[3]) result.label = period[3] as string;
+              if (period[3]) { result.label = period[3] as string; }
               return result;
 
               // Detect single or multiple dates
@@ -167,7 +164,7 @@ export function decompressJSON(compressedYamlString: string): string | null {
                 dates,
                 color: period[1] as string
               };
-              if (period[2]) result.label = period[2] as string;
+              if (period[2]) { result.label = period[2] as string; }
               return result;
             } else {
               // Single date
@@ -179,7 +176,7 @@ export function decompressJSON(compressedYamlString: string): string | null {
                 dates: [date],
                 color: period[1] as string
               };
-              if (period[2]) result.label = period[2] as string;
+              if (period[2]) { result.label = period[2] as string; }
               return result;
             }
           }
