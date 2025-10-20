@@ -81,7 +81,7 @@ function build() {
   if (tsSuccess) {
     console.log('📦 Building JavaScript from TypeScript...');
     runCommand(
-      'npx terser dist/script.js --compress --mangle --output dist/script.min.js'
+      'npx terser dist/script.js --compress drop_console=false --mangle --output dist/script.min.js'
     );
     console.log('🧹 Cleaning up intermediate JavaScript files...');
     runCommandSafe('rm -f dist/script.js dist/opt.js dist/types.js');
@@ -90,7 +90,7 @@ function build() {
       '⚠️  TypeScript compilation failed, using JavaScript fallback...'
     );
     runCommand(
-      'npx terser src/script.js --compress --mangle --output dist/script.min.js'
+      'npx terser src/script.js --compress drop_console=false --mangle --output dist/script.min.js'
     );
   }
 
