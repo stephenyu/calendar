@@ -6,5 +6,6 @@
     "sourceMap": false,
     "removeComments": true
   },
-  "exclude": ["node_modules", "dist", "__tests__", "src/script-bundle.ts"]
+  "include": ["src/script-bundle.ts"],
+  "exclude": ["node_modules", "dist", "__tests__", "src/script.ts", "src/types.ts", "src/opt.ts"]
 }
