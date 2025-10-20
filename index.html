@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Customizable Calendar</title>
+    <link rel="stylesheet" href="./style.min.css" />
+  </head>
+  <body>
+    <div id="main-container">
+      <div id="calendar-container"></div>
+      <div id="config-container">
+        <div class="timezone-selector">
+          <label for="timezone-select">Timezone:</label>
+          <select id="timezone-select">
+            <option value="auto">Auto (Browser Default)</option>
+            <optgroup label="Common Timezones">
+              <option value="UTC">UTC</option>
+              <option value="America/New_York">Eastern Time (US)</option>
+              <option value="America/Chicago">Central Time (US)</option>
+              <option value="America/Denver">Mountain Time (US)</option>
+              <option value="America/Los_Angeles">Pacific Time (US)</option>
+              <option value="America/Anchorage">Alaska Time (US)</option>
+              <option value="Pacific/Honolulu">Hawaii Time (US)</option>
+              <option value="Europe/London">London (UK)</option>
+              <option value="Europe/Paris">Paris (CET)</option>
+              <option value="Europe/Berlin">Berlin (CET)</option>
+              <option value="Asia/Tokyo">Tokyo (JST)</option>
+              <option value="Asia/Shanghai">Shanghai (CST)</option>
+              <option value="Asia/Hong_Kong">Hong Kong (HKT)</option>
+              <option value="Asia/Singapore">Singapore (SGT)</option>
+              <option value="Asia/Dubai">Dubai (GST)</option>
+              <option value="Australia/Sydney">Sydney (AEDT)</option>
+              <option value="Pacific/Auckland">Auckland (NZDT)</option>
+            </optgroup>
+          </select>
+        </div>
+        <textarea
+          id="config-input"
+          placeholder="Enter your configuration here"
+        ></textarea>
+        <br />
+        <button id="save-button">Save</button>
+      </div>
+    </div>
+
+    <!-- Modal for Color Picker -->
+    <div id="color-picker-modal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>Choose a colour:</p>
+        <input type="color" id="color-input" />
+        <button id="apply-color">Apply</button>
+      </div>
+    </div>
+
+    <!-- Include js-yaml library for parsing YAML -->
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <script src="./script.min.js"></script>
+  </body>
+</html>
