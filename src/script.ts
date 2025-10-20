@@ -61,6 +61,7 @@ declare const luxon: {
 };
 
 // DOM Elements with proper type assertions
+console.log('[DOM] Loading DOM elements');
 const configInput = document.getElementById(
   'config-input'
 ) as HTMLTextAreaElement;
@@ -72,6 +73,13 @@ const timezoneSelect = document.getElementById(
   'timezone-select'
 ) as HTMLSelectElement;
 
+console.log('[DOM] Main elements:', {
+  configInput: !!configInput,
+  saveButton: !!saveButton,
+  calendarContainer: !!calendarContainer,
+  timezoneSelect: !!timezoneSelect
+});
+
 // Modal Elements
 const modal = document.getElementById('color-picker-modal') as HTMLDivElement;
 const closeBtn = modal.querySelector('.close') as HTMLSpanElement;
@@ -79,6 +87,20 @@ const colorInput = document.getElementById('color-input') as HTMLInputElement;
 const applyColorBtn = document.getElementById(
   'apply-color'
 ) as HTMLButtonElement;
+
+console.log('[DOM] Modal elements:', {
+  modal: !!modal,
+  closeBtn: !!closeBtn,
+  colorInput: !!colorInput,
+  applyColorBtn: !!applyColorBtn
+});
+
+// Check if external libraries are loaded
+console.log('[Libraries] Checking external dependencies:', {
+  jsyaml: typeof jsyaml !== 'undefined',
+  LZString: typeof LZString !== 'undefined',
+  luxon: typeof luxon !== 'undefined'
+});
 
 // State
 let lastHashPosition: number | null = null; // Remember where '#' was typed for color picker
@@ -177,6 +199,10 @@ function generateCalendar(
   highlightPeriods: HighlightPeriod[],
   timezone: string
 ): void {
+  console.log('[generateCalendar] Starting calendar generation');
+  console.log('[generateCalendar] Years:', years);
+  console.log('[generateCalendar] Periods:', highlightPeriods.length);
+  console.log('[generateCalendar] Timezone:', timezone);
   calendarContainer.innerHTML = '';
 
   // Normalize highlight periods using the specified timezone
@@ -576,16 +602,22 @@ function decompressJSON(compressedYamlString: string): string | null {
  * @returns Decompressed YAML configuration or null if not found/error
  */
 function getConfigFromURL(): string | null {
+  console.log('[getConfigFromURL] Checking for config parameter');
   const params: URLSearchParams = new URLSearchParams(window.location.search);
   const configParam: string | null = params.get('config');
+  console.log('[getConfigFromURL] Config param:', configParam ? 'Found' : 'Not found');
   if (configParam) {
     try {
+      console.log('[getConfigFromURL] Decompressing config');
       const compressedJSON: string =
         LZString.decompressFromEncodedURIComponent(configParam);
+      console.log('[getConfigFromURL] Compressed JSON length:', compressedJSON.length);
       const decompressed: string | null = decompressJSON(compressedJSON);
+      console.log('[getConfigFromURL] Decompression successful');
       return decompressed;
     } catch (e) {
       const error = e as Error;
+      console.error('[getConfigFromURL] Error:', error);
       alert(`Error decoding configuration from URL: ${error.message}`);
     }
   }
@@ -608,24 +640,34 @@ function updateURLWithConfig(config: string): void {
 
 // Save button event
 saveButton.addEventListener('click', (): void => {
+  console.log('[Save] Save button clicked');
   const input: string = configInput.value;
+  console.log('[Save] Config input length:', input.length);
   try {
+    console.log('[Save] Parsing YAML config');
     const config = jsyaml.load(input) as CalendarConfig;
     const years: number[] = config.years;
     const highlightPeriods: HighlightPeriod[] = config.highlightPeriods;
     const timezone: string = getCurrentTimezone();
+    console.log('[Save] Years:', years);
+    console.log('[Save] Periods:', highlightPeriods.length);
+    console.log('[Save] Timezone:', timezone);
 
     if (!Array.isArray(years) || !Array.isArray(highlightPeriods)) {
       throw new Error('Invalid configuration format.');
     }
 
+    console.log('[Save] Generating calendar');
     generateCalendar(years, highlightPeriods, timezone);
 
     // Add timezone to config before compressing
     const configWithTimezone = { ...config, timezone };
+    console.log('[Save] Updating URL with config');
     updateURLWithConfig(jsyaml.dump(configWithTimezone));
+    console.log('[Save] Save complete');
   } catch (e) {
     const error = e as Error;
+    console.error('[Save] Error:', error);
     alert(`Error parsing configuration: ${error.message}`);
   }
 });
@@ -635,22 +677,31 @@ saveButton.addEventListener('click', (): void => {
  * Sets up default configuration or loads from URL parameters
  */
 function init(): void {
+  console.log('[Init] Starting calendar initialization');
+  console.log('[Init] Current URL:', window.location.href);
+  console.log('[Init] Search params:', window.location.search);
+
   const configFromURL: string | null = getConfigFromURL();
   if (configFromURL) {
+    console.log('[Init] Config loaded from URL');
     configInput.value = configFromURL;
 
     // Try to extract and set timezone from config
     try {
       const config = jsyaml.load(configFromURL) as CalendarConfig;
       if (config.timezone) {
+        console.log('[Init] Timezone from config:', config.timezone);
         timezoneSelect.value = config.timezone;
       }
     } catch (e) {
+      console.error('[Init] Error parsing config from URL:', e);
       // Ignore parsing errors, will be caught on save
     }
   } else {
+    console.log('[Init] No URL config found, using default');
     // Get current year dynamically for default showcase
     const currentYear: number = new Date().getFullYear();
+    console.log('[Init] Current year:', currentYear);
 
     // Default configuration with showcase examples
     configInput.value = `years:
@@ -665,9 +716,12 @@ highlightPeriods:
     color: '#ff6b6b'  # coral red
     label: 'Important Day'
 `;
+    console.log('[Init] Default config set in textarea');
   }
   // Trigger a save to render the initial calendar
+  console.log('[Init] Triggering save button click');
   saveButton.click();
+  console.log('[Init] Initialization complete');
 }
 
 init();
