@@ -95,6 +95,7 @@ export function compressYAML(yamlString: string): string | null {
     const jsonString: string = JSON.stringify(compressedData);
     return jsonString.slice(1, -1); // Remove the outer square brackets
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error compressing YAML:', error);
     return null;
   }
@@ -187,6 +188,7 @@ export function decompressJSON(compressedYamlString: string): string | null {
 
     return dump(decompressedData);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error decompressing JSON:', error);
     return null;
   }

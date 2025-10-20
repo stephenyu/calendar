@@ -7,7 +7,6 @@
  * @author Stephen Yu
  */
 
-
 import {
   CalendarConfig,
   HighlightPeriod,
