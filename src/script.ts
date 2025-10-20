@@ -7,12 +7,6 @@
  * @author Stephen Yu
  */
 
-console.log('========================================');
-console.log('[APP START] Calendar application script loaded');
-console.log('[APP START] Timestamp:', new Date().toISOString());
-console.log('[APP START] User Agent:', navigator.userAgent);
-console.log('[APP START] Current URL:', window.location.href);
-console.log('========================================');
 
 import {
   CalendarConfig,
@@ -68,76 +62,37 @@ declare const luxon: {
 };
 
 // DOM Elements with proper type assertions
-console.log('[DOM] Starting DOM element initialization');
-console.log('[DOM] Document ready state:', document.readyState);
-
 const configInput = document.getElementById(
   'config-input'
 ) as HTMLTextAreaElement;
-console.log('[DOM] configInput:', configInput ? 'Found' : 'NOT FOUND');
 
 const saveButton = document.getElementById('save-button') as HTMLButtonElement;
-console.log('[DOM] saveButton:', saveButton ? 'Found' : 'NOT FOUND');
 
 const calendarContainer = document.getElementById(
   'calendar-container'
 ) as HTMLDivElement;
-console.log('[DOM] calendarContainer:', calendarContainer ? 'Found' : 'NOT FOUND');
 
 const timezoneSelect = document.getElementById(
   'timezone-select'
 ) as HTMLSelectElement;
-console.log('[DOM] timezoneSelect:', timezoneSelect ? 'Found' : 'NOT FOUND');
-
-console.log('[DOM] Main elements summary:', {
-  configInput: !!configInput,
-  saveButton: !!saveButton,
-  calendarContainer: !!calendarContainer,
-  timezoneSelect: !!timezoneSelect
-});
 
 // Modal Elements
-console.log('[DOM] Loading modal elements');
 const modal = document.getElementById('color-picker-modal') as HTMLDivElement;
-console.log('[DOM] modal:', modal ? 'Found' : 'NOT FOUND');
 
 const closeBtn = modal?.querySelector('.close') as HTMLSpanElement;
-console.log('[DOM] closeBtn:', closeBtn ? 'Found' : 'NOT FOUND');
 
 const colorInput = document.getElementById('color-input') as HTMLInputElement;
-console.log('[DOM] colorInput:', colorInput ? 'Found' : 'NOT FOUND');
 
 const applyColorBtn = document.getElementById(
   'apply-color'
 ) as HTMLButtonElement;
-console.log('[DOM] applyColorBtn:', applyColorBtn ? 'Found' : 'NOT FOUND');
-
-console.log('[DOM] Modal elements summary:', {
-  modal: !!modal,
-  closeBtn: !!closeBtn,
-  colorInput: !!colorInput,
-  applyColorBtn: !!applyColorBtn
-});
-
-// Check if external libraries are loaded
-console.log('[Libraries] Checking external dependencies');
-console.log('[Libraries] jsyaml:', typeof jsyaml !== 'undefined' ? 'LOADED' : 'NOT LOADED');
-console.log('[Libraries] LZString:', typeof LZString !== 'undefined' ? 'LOADED' : 'NOT LOADED');
-console.log('[Libraries] luxon:', typeof luxon !== 'undefined' ? 'LOADED' : 'NOT LOADED');
-console.log('[Libraries] Summary:', {
-  jsyaml: typeof jsyaml !== 'undefined',
-  LZString: typeof LZString !== 'undefined',
-  luxon: typeof luxon !== 'undefined'
-});
 
 // State
 let lastHashPosition: number | null = null; // Remember where '#' was typed for color picker
 
 // Event: Show modal when '#' is typed in config input
-console.log('[Events] Setting up event listeners');
 configInput.addEventListener('keydown', (e: KeyboardEvent): void => {
   if (e.key === '#') {
-    console.log('[ColorPicker] Hash key detected, opening modal');
     // Wait until character is inserted
     setTimeout(() => {
       lastHashPosition = configInput.selectionStart! - 1;
@@ -145,13 +100,11 @@ configInput.addEventListener('keydown', (e: KeyboardEvent): void => {
     }, 0);
   }
 });
-console.log('[Events] Keydown listener attached to configInput');
 
 /**
  * Opens the color picker modal and focuses the color input
  */
 function openModal(): void {
-  console.log('[ColorPicker] Opening modal');
   modal.style.display = 'block';
   colorInput.focus();
 }
@@ -160,37 +113,30 @@ function openModal(): void {
  * Closes the color picker modal
  */
 function closeModal(): void {
-  console.log('[ColorPicker] Closing modal');
   modal.style.display = 'none';
 }
 
 closeBtn.addEventListener('click', closeModal);
-console.log('[Events] Close button listener attached');
 
 window.addEventListener('click', (e: Event): void => {
   if (e.target === modal) {
     closeModal();
   }
 });
-console.log('[Events] Window click listener attached');
 
 applyColorBtn.addEventListener('click', (): void => {
-  console.log('[ColorPicker] Apply color button clicked');
   const chosenColor: string = colorInput.value; // e.g. #ff0000
-  console.log('[ColorPicker] Chosen color:', chosenColor);
   if (lastHashPosition !== null) {
     insertColorAtPosition(chosenColor);
   }
   closeModal();
 });
-console.log('[Events] Apply color button listener attached');
 
 /**
  * Inserts a color value at the position where '#' was typed
  * @param color - The color value to insert (e.g., '#ff0000')
  */
 function insertColorAtPosition(color: string): void {
-  console.log('[ColorPicker] Inserting color at position:', lastHashPosition);
   const text: string = configInput.value;
   const before: string = text.slice(0, lastHashPosition!);
   const after: string = text.slice(lastHashPosition! + 1); // remove the '#'
@@ -203,7 +149,6 @@ function insertColorAtPosition(color: string): void {
   configInput.selectionEnd = cursorPos;
   configInput.focus();
   lastHashPosition = null;
-  console.log('[ColorPicker] Color inserted successfully');
 }
 
 /**
@@ -211,10 +156,8 @@ function insertColorAtPosition(color: string): void {
  * @returns Timezone string or 'auto' for browser default
  */
 function getCurrentTimezone(): string {
-  console.log('[Timezone] Getting current timezone');
   const value = timezoneSelect.value;
   const timezone = value === 'auto' ? luxon.DateTime.local().zoneName : value;
-  console.log('[Timezone] Selected value:', value, '-> Timezone:', timezone);
   return timezone;
 }
 
@@ -226,12 +169,9 @@ function getCurrentTimezone(): string {
  * @returns Date object set to midnight in the specified timezone
  */
 function parseDateInTimezone(dateStr: string, timezone: string): Date {
-  console.log('[DateParse] Parsing date:', dateStr, 'in timezone:', timezone);
   // Parse the date in the specified timezone at midnight
   const dt = luxon.DateTime.fromISO(dateStr, { zone: timezone });
-  const result = dt.startOf('day').toJSDate();
-  console.log('[DateParse] Result:', result.toISOString());
-  return result;
+  return dt.startOf('day').toJSDate();
 }
 
 /**
@@ -245,10 +185,6 @@ function generateCalendar(
   highlightPeriods: HighlightPeriod[],
   timezone: string
 ): void {
-  console.log('[generateCalendar] Starting calendar generation');
-  console.log('[generateCalendar] Years:', years);
-  console.log('[generateCalendar] Periods:', highlightPeriods.length);
-  console.log('[generateCalendar] Timezone:', timezone);
   calendarContainer.innerHTML = '';
 
   // Normalize highlight periods using the specified timezone
@@ -442,7 +378,6 @@ function createMonthTable(
  * @returns CSS linear-gradient string
  */
 function generateGradient(colors: string[]): string {
-  console.log('[Gradient] Generating gradient for', colors.length, 'colors:', colors);
   const percentage: number = 100 / colors.length;
   const colorStops: string[] = colors.map(
     (color: string, index: number): string => {
@@ -451,9 +386,7 @@ function generateGradient(colors: string[]): string {
       return `${color} ${start}%, ${color} ${end}%`;
     }
   );
-  const gradient = `linear-gradient(to bottom, ${colorStops.join(', ')})`;
-  console.log('[Gradient] Result:', gradient);
-  return gradient;
+  return `linear-gradient(to bottom, ${colorStops.join(', ')})`;
 }
 
 /**
@@ -462,11 +395,8 @@ function generateGradient(colors: string[]): string {
  * @returns Compressed JSON string or null if error
  */
 function compressYAML(yamlString: string): string | null {
-  console.log('[Compress] Starting YAML compression');
   try {
-    console.log('[Compress] Parsing YAML');
     const parsedData = jsyaml.load(yamlString) as CalendarConfig;
-    console.log('[Compress] Parsed data:', parsedData);
 
     const compressedData: CompressedData = [[], []];
 
@@ -545,9 +475,7 @@ function compressYAML(yamlString: string): string | null {
     }
 
     const jsonString: string = JSON.stringify(compressedData);
-    const result = jsonString.slice(1, -1); // Remove the outer square brackets
-    console.log('[Compress] Compression complete, length:', result.length);
-    return result;
+    return jsonString.slice(1, -1); // Remove the outer square brackets
   } catch (error) {
     console.error('[Compress] Error compressing YAML:', error);
     return null;
@@ -560,14 +488,10 @@ function compressYAML(yamlString: string): string | null {
  * @returns YAML configuration string or null if error
  */
 function decompressJSON(compressedYamlString: string): string | null {
-  console.log('[Decompress] Starting JSON decompression');
-  console.log('[Decompress] Input length:', compressedYamlString?.length || 0);
   try {
     // Wrap the string in square brackets before parsing
     const jsonString: string = `[${compressedYamlString}]`;
-    console.log('[Decompress] Parsing JSON');
     const parsedData = JSON.parse(jsonString) as CompressedData;
-    console.log('[Decompress] Parsed data:', parsedData);
 
     const decompressedData: Partial<CalendarConfig> = {};
 
@@ -648,10 +572,7 @@ function decompressJSON(compressedYamlString: string): string | null {
       decompressedData.timezone = parsedData[2];
     }
 
-    const result = jsyaml.dump(decompressedData);
-    console.log('[Decompress] Decompression complete');
-    console.log('[Decompress] Result YAML:', result);
-    return result;
+    return jsyaml.dump(decompressedData);
   } catch (error) {
     console.error('[Decompress] Error decompressing JSON:', error);
     return null;
@@ -663,19 +584,13 @@ function decompressJSON(compressedYamlString: string): string | null {
  * @returns Decompressed YAML configuration or null if not found/error
  */
 function getConfigFromURL(): string | null {
-  console.log('[getConfigFromURL] Checking for config parameter');
   const params: URLSearchParams = new URLSearchParams(window.location.search);
   const configParam: string | null = params.get('config');
-  console.log('[getConfigFromURL] Config param:', configParam ? 'Found' : 'Not found');
   if (configParam) {
     try {
-      console.log('[getConfigFromURL] Decompressing config');
       const compressedJSON: string =
         LZString.decompressFromEncodedURIComponent(configParam);
-      console.log('[getConfigFromURL] Compressed JSON length:', compressedJSON.length);
-      const decompressed: string | null = decompressJSON(compressedJSON);
-      console.log('[getConfigFromURL] Decompression successful');
-      return decompressed;
+      return decompressJSON(compressedJSON);
     } catch (e) {
       const error = e as Error;
       console.error('[getConfigFromURL] Error:', error);
@@ -690,17 +605,12 @@ function getConfigFromURL(): string | null {
  * @param config - The YAML configuration string to compress and store
  */
 function updateURLWithConfig(config: string): void {
-  console.log('[URL] Updating URL with config');
   const compressedJSON: string | null = compressYAML(config);
   if (compressedJSON) {
-    console.log('[URL] Compressing with LZString');
     const compressed: string =
       LZString.compressToEncodedURIComponent(compressedJSON);
-    console.log('[URL] Compressed length:', compressed.length);
     const newURL: string = `${window.location.protocol}//${window.location.host}${window.location.pathname}?config=${compressed}`;
-    console.log('[URL] New URL length:', newURL.length);
     window.history.replaceState({ path: newURL }, '', newURL);
-    console.log('[URL] URL updated successfully');
   } else {
     console.error('[URL] Failed to compress config');
   }
@@ -708,31 +618,22 @@ function updateURLWithConfig(config: string): void {
 
 // Save button event
 saveButton.addEventListener('click', (): void => {
-  console.log('[Save] Save button clicked');
   const input: string = configInput.value;
-  console.log('[Save] Config input length:', input.length);
   try {
-    console.log('[Save] Parsing YAML config');
     const config = jsyaml.load(input) as CalendarConfig;
     const years: number[] = config.years;
     const highlightPeriods: HighlightPeriod[] = config.highlightPeriods;
     const timezone: string = getCurrentTimezone();
-    console.log('[Save] Years:', years);
-    console.log('[Save] Periods:', highlightPeriods.length);
-    console.log('[Save] Timezone:', timezone);
 
     if (!Array.isArray(years) || !Array.isArray(highlightPeriods)) {
       throw new Error('Invalid configuration format.');
     }
 
-    console.log('[Save] Generating calendar');
     generateCalendar(years, highlightPeriods, timezone);
 
     // Add timezone to config before compressing
     const configWithTimezone = { ...config, timezone };
-    console.log('[Save] Updating URL with config');
     updateURLWithConfig(jsyaml.dump(configWithTimezone));
-    console.log('[Save] Save complete');
   } catch (e) {
     const error = e as Error;
     console.error('[Save] Error:', error);
@@ -745,20 +646,14 @@ saveButton.addEventListener('click', (): void => {
  * Sets up default configuration or loads from URL parameters
  */
 function init(): void {
-  console.log('[Init] Starting calendar initialization');
-  console.log('[Init] Current URL:', window.location.href);
-  console.log('[Init] Search params:', window.location.search);
-
   const configFromURL: string | null = getConfigFromURL();
   if (configFromURL) {
-    console.log('[Init] Config loaded from URL');
     configInput.value = configFromURL;
 
     // Try to extract and set timezone from config
     try {
       const config = jsyaml.load(configFromURL) as CalendarConfig;
       if (config.timezone) {
-        console.log('[Init] Timezone from config:', config.timezone);
         timezoneSelect.value = config.timezone;
       }
     } catch (e) {
@@ -766,10 +661,8 @@ function init(): void {
       // Ignore parsing errors, will be caught on save
     }
   } else {
-    console.log('[Init] No URL config found, using default');
     // Get current year dynamically for default showcase
     const currentYear: number = new Date().getFullYear();
-    console.log('[Init] Current year:', currentYear);
 
     // Default configuration with showcase examples
     configInput.value = `years:
@@ -784,14 +677,9 @@ highlightPeriods:
     color: '#ff6b6b'  # coral red
     label: 'Important Day'
 `;
-    console.log('[Init] Default config set in textarea');
   }
   // Trigger a save to render the initial calendar
-  console.log('[Init] Triggering save button click');
   saveButton.click();
-  console.log('[Init] Initialization complete');
 }
 
-console.log('[APP] Calling init() function');
 init();
-console.log('[APP] init() function called - script execution complete');

@@ -193,62 +193,49 @@ export function decompressJSON(compressedYamlString: string): string | null {
 }
 
 // Example usage and testing code (for development purposes)
-if (require.main === module) {
-  const yamlString: string = `
-years:
-  - 2024
-  - 2025
-highlightPeriods:
-  - start: '2024-12-23'
-    end: '2024-12-31'
-    color: '#ffd700'
-    label: "Stephen's Leave"
-  - start: '2024-12-30'
-    end: '2025-01-01'
-    color: 'lightgreen'
-    label: "Rachel and Liam Visit"
-  - start: '2025-01-11'
-    end: '2025-01-15'
-    color: 'pink'
-    label: "Travel to Melbourne"
-  - dates:
-     - '2025-02-01'
-    color: '#c8a6ff'
-    label: "House Warming"
-  - start: '2025-03-01'
-    end: '2025-03-14'
-    color: 'orange'
-    label: "Travel to UK"
-  - start: '2025-04-07'
-    end: '2025-04-11'
-    color: '#ffd95e'
-    label: "Canva Create"
-  - dates:
-     - '2025-08-09'
-    color: "#6bdaff"
-    label: "Rachel's Wedding"
-  - dates:
-     - '2025-09-06'
-    color: "#abffb6"
-    label: "Another Wedding"
-`;
-
-  const compressedString: string | null = compressYAML(yamlString);
-  if (compressedString) {
-    console.log('Compressed:');
-    console.log(compressedString);
-
-    const decompressedYaml: string | null = decompressJSON(compressedString);
-    if (decompressedYaml) {
-      console.log('Decompressed YAML:');
-      console.log(decompressedYaml);
-
-      console.log(
-        'Performance',
-        yamlString.length,
-        compressedString.length,
-        100 - (compressedString.length / yamlString.length) * 100
-      );
-    }
-  }
-}
+// Commented out to remove console.log statements
+// if (require.main === module) {
+//   const yamlString: string = `
+// years:
+//   - 2024
+//   - 2025
+// highlightPeriods:
+//   - start: '2024-12-23'
+//     end: '2024-12-31'
+//     color: '#ffd700'
+//     label: "Stephen's Leave"
+//   - start: '2024-12-30'
+//     end: '2025-01-01'
+//     color: 'lightgreen'
+//     label: "Rachel and Liam Visit"
+//   - start: '2025-01-11'
+//     end: '2025-01-15'
+//     color: 'pink'
+//     label: "Travel to Melbourne"
+//   - dates:
+//      - '2025-02-01'
+//     color: '#c8a6ff'
+//     label: "House Warming"
+//   - start: '2025-03-01'
+//     end: '2025-03-14'
+//     color: 'orange'
+//     label: "Travel to UK"
+//   - start: '2025-04-07'
+//     end: '2025-04-11'
+//     color: '#ffd95e'
+//     label: "Canva Create"
+//   - dates:
+//      - '2025-08-09'
+//     color: "#6bdaff"
+//     label: "Rachel's Wedding"
+//   - dates:
+//      - '2025-09-06'
+//     color: "#abffb6"
+//     label: "Another Wedding"
+// `;
+//
+//   const compressedString: string | null = compressYAML(yamlString);
+//   if (compressedString) {
+//     const decompressedYaml: string | null = decompressJSON(compressedString);
+//   }
+// }
