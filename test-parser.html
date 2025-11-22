@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Parser Test</title>
+</head>
+<body>
+  <pre id="output"></pre>
+  <script src="./script.min.js"></script>
+  <script>
+    const testConfig = `years:
+  - 2025
+highlightPeriods:
+  - start: 2025-12-01
+    end: 2025-12-31
+    color: #ffd700
+    label: Festival Break
+  - dates:
+      - 2025-01-13
+    color: #ff6b6b
+    label: Important Day`;
+    
+    try {
+      const result = parseConfig(testConfig);
+      document.getElementById('output').textContent = JSON.stringify(result, null, 2);
+    } catch (e) {
+      document.getElementById('output').textContent = 'ERROR: ' + e.message + '\n' + e.stack;
+    }
+  </script>
+</body>
+</html>

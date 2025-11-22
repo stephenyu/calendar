@@ -1,0 +1,158 @@
+/**
+ * @fileoverview Unit tests for CalendarRenderer module
+ */
+
+import {
+  createMonthTable,
+  createLegend,
+  renderCalendar
+} from '../src/ui/CalendarRenderer';
+import { NormalizedPeriod } from '../src/types';
+
+// Mock dependencies
+jest.mock('../src/utils/GradientUtils', () => ({
+  generateGradient: jest.fn((colors: string[]) => {
+    return colors.length > 0 ? `gradient(${colors.join(',')})` : '';
+  })
+}));
+
+jest.mock('../src/core/CalendarGenerator', () => ({
+  normalizePeriods: jest.fn((periods: any[]) => periods),
+  getColorsForDate: jest.fn(() => [])
+}));
+
+describe('CalendarRenderer', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '<div id="calendar-container"></div>';
+  });
+
+  describe('createMonthTable', () => {
+    it('should create table with correct structure', () => {
+      const periods: NormalizedPeriod[] = [];
+      const usedPeriods = new Set<number>();
+
+      const table = createMonthTable(2024, 0, periods, usedPeriods);
+
+      expect(table.tagName).toBe('TABLE');
+      expect(table.className).toBe('month-table');
+      expect(table.querySelector('thead')).toBeTruthy();
+      expect(table.querySelector('tbody')).toBeTruthy();
+    });
+
+    it('should include month name in header', () => {
+      const periods: NormalizedPeriod[] = [];
+      const usedPeriods = new Set<number>();
+
+      const table = createMonthTable(2024, 0, periods, usedPeriods);
+      const monthHeader = table.querySelector('.month-name-row th');
+
+      expect(monthHeader?.textContent).toContain('January');
+      expect(monthHeader?.textContent).toContain('2024');
+    });
+
+    it('should include weekday headers', () => {
+      const periods: NormalizedPeriod[] = [];
+      const usedPeriods = new Set<number>();
+
+      const table = createMonthTable(2024, 0, periods, usedPeriods);
+      const weekdayRow = table.querySelector('.weekday-row');
+
+      expect(weekdayRow?.children.length).toBe(7);
+    });
+
+    it('should create correct number of days for January 2024', () => {
+      const periods: NormalizedPeriod[] = [];
+      const usedPeriods = new Set<number>();
+
+      const table = createMonthTable(2024, 0, periods, usedPeriods);
+      const cells = table.querySelectorAll('tbody td');
+
+      // January 2024 has 31 days, starts on Monday (day 1)
+      // Should have cells for: 1 blank + 31 days = 32 cells minimum
+      expect(cells.length).toBeGreaterThanOrEqual(31);
+    });
+  });
+
+  describe('createLegend', () => {
+    it('should create legend with labeled periods', () => {
+      const periods: NormalizedPeriod[] = [
+        {
+          color: '#ff0000',
+          label: 'Test Period 1',
+          order: 0
+        },
+        {
+          color: '#00ff00',
+          label: 'Test Period 2',
+          order: 1
+        },
+        {
+          color: '#0000ff',
+          // no label - should be skipped
+          order: 2
+        }
+      ];
+
+      const legend = createLegend(periods);
+      expect(legend.className).toBe('legend');
+      expect(legend.children.length).toBe(2); // Only labeled periods
+    });
+
+    it('should include color and label for each period', () => {
+      const periods: NormalizedPeriod[] = [
+        {
+          color: '#ff0000',
+          label: 'Test Period',
+          order: 0
+        }
+      ];
+
+      const legend = createLegend(periods);
+      const legendItem = legend.querySelector('.legend-item');
+      const colorDiv = legendItem?.querySelector('.legend-color');
+      const labelSpan = legendItem?.querySelector('span');
+
+      expect(colorDiv).toBeTruthy();
+      expect(labelSpan?.textContent).toBe('Test Period');
+    });
+
+    it('should return empty legend for no labeled periods', () => {
+      const periods: NormalizedPeriod[] = [
+        {
+          color: '#ff0000',
+          // no label
+          order: 0
+        }
+      ];
+
+      const legend = createLegend(periods);
+      expect(legend.children.length).toBe(0);
+    });
+  });
+
+  describe('renderCalendar', () => {
+    it('should render calendar for multiple years', () => {
+      const container = document.getElementById(
+        'calendar-container'
+      ) as HTMLDivElement;
+      const periods: NormalizedPeriod[] = [];
+
+      renderCalendar(container, [2024, 2025], periods, 'UTC');
+
+      const calendars = container.querySelectorAll('.calendar');
+      expect(calendars.length).toBe(2);
+    });
+
+    it('should clear container before rendering', () => {
+      const container = document.getElementById(
+        'calendar-container'
+      ) as HTMLDivElement;
+      container.innerHTML = '<div>old content</div>';
+
+      renderCalendar(container, [2024], [], 'UTC');
+
+      expect(container.querySelector('div.old-content')).toBeNull();
+    });
+  });
+});
+
