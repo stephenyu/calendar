@@ -15,6 +15,7 @@ import {
   normalizePeriods,
   getColorsForDate
 } from '../core/CalendarGenerator.js';
+import { parseDateInTimezone } from '../utils/DateUtils.js';
 
 /**
  * Creates a month table element with highlighted dates based on periods
@@ -22,13 +23,15 @@ import {
  * @param month - The month (0-11, where 0 is January)
  * @param periods - Array of normalized period objects
  * @param usedPeriods - Set to track which periods are used (for legend)
+ * @param timezone - IANA timezone string for date parsing
  * @returns The generated month table element
  */
 export function createMonthTable(
   year: number,
   month: Month,
   periods: NormalizedPeriod[],
-  usedPeriods: Set<number>
+  usedPeriods: Set<number>,
+  timezone: string
 ): HTMLTableElement {
   const monthTable: HTMLTableElement = document.createElement('table');
   monthTable.className = 'month-table';
@@ -77,8 +80,12 @@ export function createMonthTable(
       if (cellIndex >= firstDay && currentDay <= daysInMonth) {
         // Valid day
         td.textContent = currentDay.toString();
-        const dateObj: Date = new Date(year, month, currentDay);
-        dateObj.setHours(0, 0, 0, 0);
+        
+        // Format date as YYYY-MM-DD and parse in the configured timezone
+        const monthStr = (month + 1).toString().padStart(2, '0');
+        const dayStr = currentDay.toString().padStart(2, '0');
+        const dateStr = `${year}-${monthStr}-${dayStr}`;
+        const dateObj: Date = parseDateInTimezone(dateStr, timezone);
 
         const colors: string[] = getColorsForDate(
           dateObj,
@@ -182,7 +189,7 @@ export function renderCalendar(
       for (const monthIndex of rowMonths) {
         const td: HTMLTableCellElement = document.createElement('td');
         td.appendChild(
-          createMonthTable(year, monthIndex, normalizedPeriods, usedPeriods)
+          createMonthTable(year, monthIndex, normalizedPeriods, usedPeriods, timezone)
         );
         tr.appendChild(td);
       }

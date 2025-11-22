@@ -8,6 +8,7 @@ import {
   CalendarConfig,
   HighlightPeriod
 } from '../types.js';
+import { preprocessYAML } from '../utils/YAMLPreprocessor.js';
 
 export interface ValidationResult {
   valid: boolean;
@@ -16,12 +17,15 @@ export interface ValidationResult {
 
 /**
  * Parses YAML configuration string into CalendarConfig object
- * @param yamlString - YAML configuration string
+ * Automatically adds quotes where needed using preprocessor
+ * @param yamlString - YAML configuration string (quoted or unquoted)
  * @returns Parsed CalendarConfig or null if parsing fails
  */
 export function parseYAML(yamlString: string): CalendarConfig | null {
   try {
-    const config = load(yamlString) as CalendarConfig;
+    // Preprocess to add quotes where needed
+    const processedYaml = preprocessYAML(yamlString);
+    const config = load(processedYaml) as CalendarConfig;
     return config;
   } catch (error) {
     const err = error as Error;

@@ -8,6 +8,124 @@
  */
 
 // ============================================================================
+// YAML PREPROCESSOR (inlined from utils/YAMLPreprocessor.ts)
+// ============================================================================
+
+/**
+ * Detects if a string looks like a hex color (#fff, #ffd700, etc.)
+ */
+function isHexColor(value: string): boolean {
+  return /^#[0-9a-fA-F]{3,8}$/.test(value.trim());
+}
+
+/**
+ * Detects if a string looks like a date (YYYY-MM-DD)
+ */
+function isDateString(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value.trim());
+}
+
+/**
+ * Checks if a value is already quoted
+ */
+function isQuoted(value: string): boolean {
+  const trimmed = value.trim();
+  return (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  );
+}
+
+/**
+ * Preprocesses YAML to add quotes where needed
+ * Automatically quotes hex colors and dates
+ */
+function preprocessYAML(yaml: string): string {
+  const lines = yaml.split('\n');
+  const processedLines: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!;
+    
+    // Skip empty lines and comments
+    if (line.trim() === '' || line.trim().startsWith('#')) {
+      processedLines.push(line);
+      continue;
+    }
+
+    const trimmedLine = line.trim();
+    
+    // Check if this is a simple array item
+    if (trimmedLine.startsWith('-')) {
+      const dashIndex = line.indexOf('-');
+      const afterDash = line.substring(dashIndex + 1).trim();
+      
+      const colonInArrayItem = afterDash.indexOf(':');
+      
+      if (colonInArrayItem === -1) {
+        // Simple array item: "  - 2025-01-01"
+        if (afterDash && !isQuoted(afterDash)) {
+          if (isHexColor(afterDash) || isDateString(afterDash)) {
+            const beforeDash = line.substring(0, dashIndex + 1);
+            processedLines.push(`${beforeDash} "${afterDash}"`);
+            continue;
+          }
+        }
+        processedLines.push(line);
+        continue;
+      } else {
+        // Array item with key-value: "  - start: 2025-12-01"
+        const beforeColon = afterDash.substring(0, colonInArrayItem);
+        const afterColon = afterDash.substring(colonInArrayItem + 1).trim();
+        
+        if (afterColon && !isQuoted(afterColon)) {
+          if (isHexColor(afterColon) || isDateString(afterColon)) {
+            const beforeDash = line.substring(0, dashIndex + 1);
+            processedLines.push(`${beforeDash} ${beforeColon}: "${afterColon}"`);
+            continue;
+          }
+        }
+        processedLines.push(line);
+        continue;
+      }
+    }
+
+    // Check if this is a key-value line
+    const colonIndex = line.indexOf(':');
+    if (colonIndex === -1) {
+      processedLines.push(line);
+      continue;
+    }
+
+    const beforeColon = line.substring(0, colonIndex);
+    const afterColon = line.substring(colonIndex + 1);
+
+    if (afterColon.trim() === '') {
+      processedLines.push(line);
+      continue;
+    }
+
+    const value = afterColon.trim();
+
+    if (isQuoted(value)) {
+      processedLines.push(line);
+      continue;
+    }
+
+    // Regular key-value pair
+    if (isHexColor(value) || isDateString(value)) {
+      const indent = beforeColon.match(/^\s*/)?.[0] || '';
+      const key = beforeColon.trim();
+      processedLines.push(`${indent}${key}: "${value}"`);
+    } else {
+      processedLines.push(line);
+    }
+  }
+
+  return processedLines.join('\n');
+}
+
+// ============================================================================
 // TYPE DEFINITIONS (inlined from types.ts)
 // ============================================================================
 
@@ -690,7 +808,9 @@ function updateURLWithConfig(config: string): void {
 saveButton.addEventListener('click', (): void => {
   const input: string = configInput.value;
   try {
-    const config = jsyaml.load(input) as CalendarConfig;
+    // Preprocess YAML to add quotes where needed
+    const processedInput = preprocessYAML(input);
+    const config = jsyaml.load(processedInput) as CalendarConfig;
     const years: number[] = config.years;
     const highlightPeriods: HighlightPeriod[] = config.highlightPeriods;
     const timezone: string = getCurrentTimezone();
@@ -722,7 +842,8 @@ function init(): void {
 
     // Try to extract and set timezone from config
     try {
-      const config = jsyaml.load(configFromURL) as CalendarConfig;
+      const processedConfig = preprocessYAML(configFromURL);
+      const config = jsyaml.load(processedConfig) as CalendarConfig;
       if (config.timezone) {
         timezoneSelect.value = config.timezone;
       }

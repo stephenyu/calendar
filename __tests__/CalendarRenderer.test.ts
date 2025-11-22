@@ -18,7 +18,11 @@ jest.mock('../src/utils/GradientUtils', () => ({
 
 jest.mock('../src/core/CalendarGenerator', () => ({
   normalizePeriods: jest.fn((periods: any[]) => periods),
-  getColorsForDate: jest.fn(() => [])
+  getColorsForDate: jest.fn((): string[] => [])
+}));
+
+jest.mock('../src/utils/DateUtils', () => ({
+  parseDateInTimezone: jest.fn((dateStr: string) => new Date(dateStr))
 }));
 
 describe('CalendarRenderer', () => {
@@ -31,7 +35,7 @@ describe('CalendarRenderer', () => {
       const periods: NormalizedPeriod[] = [];
       const usedPeriods = new Set<number>();
 
-      const table = createMonthTable(2024, 0, periods, usedPeriods);
+      const table = createMonthTable(2024, 0, periods, usedPeriods, 'UTC');
 
       expect(table.tagName).toBe('TABLE');
       expect(table.className).toBe('month-table');
@@ -43,7 +47,7 @@ describe('CalendarRenderer', () => {
       const periods: NormalizedPeriod[] = [];
       const usedPeriods = new Set<number>();
 
-      const table = createMonthTable(2024, 0, periods, usedPeriods);
+      const table = createMonthTable(2024, 0, periods, usedPeriods, 'UTC');
       const monthHeader = table.querySelector('.month-name-row th');
 
       expect(monthHeader?.textContent).toContain('January');
@@ -54,7 +58,7 @@ describe('CalendarRenderer', () => {
       const periods: NormalizedPeriod[] = [];
       const usedPeriods = new Set<number>();
 
-      const table = createMonthTable(2024, 0, periods, usedPeriods);
+      const table = createMonthTable(2024, 0, periods, usedPeriods, 'UTC');
       const weekdayRow = table.querySelector('.weekday-row');
 
       expect(weekdayRow?.children.length).toBe(7);
@@ -64,7 +68,7 @@ describe('CalendarRenderer', () => {
       const periods: NormalizedPeriod[] = [];
       const usedPeriods = new Set<number>();
 
-      const table = createMonthTable(2024, 0, periods, usedPeriods);
+      const table = createMonthTable(2024, 0, periods, usedPeriods, 'UTC');
       const cells = table.querySelectorAll('tbody td');
 
       // January 2024 has 31 days, starts on Monday (day 1)
@@ -152,6 +156,22 @@ describe('CalendarRenderer', () => {
       renderCalendar(container, [2024], [], 'UTC');
 
       expect(container.querySelector('div.old-content')).toBeNull();
+    });
+
+    it('should use timezone when creating date objects for comparison', () => {
+      const parseDateInTimezone = require('../src/utils/DateUtils').parseDateInTimezone;
+      const container = document.getElementById(
+        'calendar-container'
+      ) as HTMLDivElement;
+      const periods: NormalizedPeriod[] = [];
+
+      renderCalendar(container, [2024], periods, 'Australia/Sydney');
+
+      // Verify parseDateInTimezone was called with correct timezone
+      expect(parseDateInTimezone).toHaveBeenCalledWith(
+        expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+        'Australia/Sydney'
+      );
     });
   });
 });

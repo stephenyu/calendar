@@ -171,6 +171,179 @@ describe('ConfigManager', () => {
       expect(result.config).toEqual(mockConfig);
     });
 
+    it('should parse YAML without quotes around values (preprocessor adds them)', () => {
+      const unquotedYaml = `years:
+  - 2025
+highlightPeriods:
+  - start: 2025-12-01
+    end: 2025-12-31
+    color: #ffd700
+    label: Festival Break
+  - dates:
+      - 2025-01-13
+    color: #ff6b6b
+    label: Important Day
+timezone: Australia/Sydney`;
+
+      const expectedPreprocessedYaml = `years:
+  - 2025
+highlightPeriods:
+  - start: "2025-12-01"
+    end: "2025-12-31"
+    color: "#ffd700"
+    label: Festival Break
+  - dates:
+      - "2025-01-13"
+    color: "#ff6b6b"
+    label: Important Day
+timezone: Australia/Sydney`;
+
+      const mockConfig: CalendarConfig = {
+        years: [2025],
+        highlightPeriods: [
+          {
+            start: '2025-12-01',
+            end: '2025-12-31',
+            color: '#ffd700',
+            label: 'Festival Break'
+          },
+          {
+            dates: ['2025-01-13'],
+            color: '#ff6b6b',
+            label: 'Important Day'
+          }
+        ],
+        timezone: 'Australia/Sydney'
+      };
+      (load as jest.Mock).mockReturnValue(mockConfig);
+
+      const result = parseAndValidateYAML(unquotedYaml);
+      expect(result.valid).toBe(true);
+      expect(result.config).toEqual(mockConfig);
+      // Verify that load was called with the preprocessed (quoted) version
+      expect(load).toHaveBeenCalledWith(expectedPreprocessedYaml);
+    });
+
+    it('should parse identically with and without quotes (preprocessor normalizes)', () => {
+      const yamlWithQuotes = `years:
+  - 2025
+highlightPeriods:
+  - start: "2025-12-01"
+    end: "2025-12-31"
+    color: "#ffd700"
+    label: "Festival Break"
+  - dates:
+      - "2025-01-13"
+    color: "#ff6b6b"
+    label: "Important Day"
+timezone: "Australia/Sydney"`;
+
+      const yamlWithoutQuotes = `years:
+  - 2025
+highlightPeriods:
+  - start: 2025-12-01
+    end: 2025-12-31
+    color: #ffd700
+    label: Festival Break
+  - dates:
+      - 2025-01-13
+    color: #ff6b6b
+    label: Important Day
+timezone: Australia/Sydney`;
+
+      const expectedConfig: CalendarConfig = {
+        years: [2025],
+        highlightPeriods: [
+          {
+            start: '2025-12-01',
+            end: '2025-12-31',
+            color: '#ffd700',
+            label: 'Festival Break'
+          },
+          {
+            dates: ['2025-01-13'],
+            color: '#ff6b6b',
+            label: 'Important Day'
+          }
+        ],
+        timezone: 'Australia/Sydney'
+      };
+
+      // Parse with quotes
+      (load as jest.Mock).mockReturnValue(expectedConfig);
+      const resultWithQuotes = parseAndValidateYAML(yamlWithQuotes);
+
+      // Parse without quotes
+      (load as jest.Mock).mockReturnValue(expectedConfig);
+      const resultWithoutQuotes = parseAndValidateYAML(yamlWithoutQuotes);
+
+      // Both should be valid
+      expect(resultWithQuotes.valid).toBe(true);
+      expect(resultWithoutQuotes.valid).toBe(true);
+
+      // Both should produce identical configs
+      expect(resultWithQuotes.config).toEqual(resultWithoutQuotes.config);
+      expect(resultWithQuotes.config).toEqual(expectedConfig);
+      expect(resultWithoutQuotes.config).toEqual(expectedConfig);
+
+      // Note: load() is called with preprocessed versions, which may differ in quoting
+      // but both produce the same parsed result
+    });
+
+    it('should parse YAML with labels containing spaces without quotes', () => {
+      const yamlWithSpaces = `years:
+  - 2024
+highlightPeriods:
+  - start: 2024-01-01
+    end: 2024-01-31
+    color: #ff0000
+    label: Important Holiday Period`;
+
+      const mockConfig: CalendarConfig = {
+        years: [2024],
+        highlightPeriods: [
+          {
+            start: '2024-01-01',
+            end: '2024-01-31',
+            color: '#ff0000',
+            label: 'Important Holiday Period'
+          }
+        ]
+      };
+      (load as jest.Mock).mockReturnValue(mockConfig);
+
+      const result = parseAndValidateYAML(yamlWithSpaces);
+      expect(result.valid).toBe(true);
+      expect(result.config).toEqual(mockConfig);
+    });
+
+    it('should parse YAML with hex color values without quotes', () => {
+      const yamlWithColors = `years:
+  - 2024
+highlightPeriods:
+  - start: 2024-01-01
+    end: 2024-01-31
+    color: #ffd700
+    label: Test`;
+
+      const mockConfig: CalendarConfig = {
+        years: [2024],
+        highlightPeriods: [
+          {
+            start: '2024-01-01',
+            end: '2024-01-31',
+            color: '#ffd700',
+            label: 'Test'
+          }
+        ]
+      };
+      (load as jest.Mock).mockReturnValue(mockConfig);
+
+      const result = parseAndValidateYAML(yamlWithColors);
+      expect(result.valid).toBe(true);
+      expect(result.config?.highlightPeriods[0].color).toBe('#ffd700');
+    });
+
     it('should return error for invalid YAML', () => {
       (load as jest.Mock).mockImplementation(() => {
         throw new Error('Invalid YAML');
