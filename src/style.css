@@ -169,3 +169,34 @@ body {
   border: 1px solid #000;
   box-sizing: border-box;
 }
+
+/* Tooltip Styles */
+.calendar-tooltip {
+  display: none;
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: monospace;
+  pointer-events: none;
+  z-index: 1000;
+  white-space: nowrap;
+  transform: translate(-50%, -100%);
+  margin-top: -5px;
+}
+
+.calendar-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.85);
+}
+
+td.has-highlight {
+  cursor: pointer;
+}

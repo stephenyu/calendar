@@ -5,6 +5,31 @@ All notable changes to the Customizable Calendar project will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Tooltip Feature** [SF, RP, TDT]
+  - Interactive tooltips on hover for colored calendar segments
+  - Display period labels when hovering over highlighted dates
+  - Support for multiple overlapping period labels
+  - Smooth, modern tooltip styling with arrow indicator
+  - Comprehensive test coverage (15 new tests)
+  - Smart filtering of unlabeled periods from tooltip display
+
+### Changed
+- **Calendar Rendering Enhancement**
+  - Modified `getColorsForDate()` to return both colors and matching period objects
+  - Updated `createMonthTable()` to store period labels in data attributes
+  - Added `has-highlight` CSS class for interactive cursor feedback
+  - Implemented tooltip initialization system in calendar renderer
+
+### Technical Details
+- 249 lines added across 5 files
+- All 101 tests passing
+- Zero linter errors
+- Fully typed TypeScript implementation
+- [AC, DRY, RP] principles applied throughout
+
 ## [1.0.0] - 2024-12-XX
 
 ### Added

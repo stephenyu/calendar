@@ -41,18 +41,19 @@ export function normalizePeriods(
 }
 
 /**
- * Checks if a date matches any period and returns matching colors
+ * Checks if a date matches any period and returns matching colors and periods
  * @param date - Date to check
  * @param periods - Array of normalized periods
  * @param usedPeriods - Set to track which periods are used (mutated)
- * @returns Array of colors for matching periods
+ * @returns Object with arrays of colors and matching periods
  */
 export function getColorsForDate(
   date: Date,
   periods: NormalizedPeriod[],
   usedPeriods: Set<number>
-): string[] {
+): { colors: string[]; matchingPeriods: NormalizedPeriod[] } {
   const colors: string[] = [];
+  const matchingPeriods: NormalizedPeriod[] = [];
 
   for (let i = 0; i < periods.length; i++) {
     const period: NormalizedPeriod = periods[i]!;
@@ -61,6 +62,7 @@ export function getColorsForDate(
     if (period.startDate && period.endDate) {
       if (date >= period.startDate && date <= period.endDate) {
         colors.push(period.color);
+        matchingPeriods.push(period);
         usedPeriods.add(i);
       }
     } else if (period.dateObjects) {
@@ -68,6 +70,7 @@ export function getColorsForDate(
       for (const dObj of period.dateObjects) {
         if (date.getTime() === dObj.getTime()) {
           colors.push(period.color);
+          matchingPeriods.push(period);
           usedPeriods.add(i);
           break; // Found match, no need to check other dates in this period
         }
@@ -75,5 +78,5 @@ export function getColorsForDate(
     }
   }
 
-  return colors;
+  return { colors, matchingPeriods };
 }

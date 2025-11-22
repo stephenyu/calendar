@@ -87,7 +87,7 @@ export function createMonthTable(
         const dateStr = `${year}-${monthStr}-${dayStr}`;
         const dateObj: Date = parseDateInTimezone(dateStr, timezone);
 
-        const colors: string[] = getColorsForDate(
+        const { colors, matchingPeriods } = getColorsForDate(
           dateObj,
           periods,
           usedPeriods
@@ -95,6 +95,17 @@ export function createMonthTable(
 
         if (colors.length > 0) {
           td.style.background = generateGradient(colors);
+          td.classList.add('has-highlight');
+
+          // Store labels for tooltip
+          const labels = matchingPeriods
+            .map(p => p.label)
+            .filter(label => label) // Filter out undefined/empty labels
+            .join(', ');
+
+          if (labels) {
+            td.dataset.labels = labels;
+          }
         }
 
         currentDay++;
@@ -212,4 +223,50 @@ export function renderCalendar(
 
     container.appendChild(calendarDiv);
   }
+
+  // Initialize tooltips after rendering
+  initializeTooltips(container);
+}
+
+/**
+ * Initializes tooltip functionality for highlighted dates
+ * @param container - The calendar container element
+ */
+function initializeTooltips(container: HTMLDivElement): void {
+  // Create tooltip element
+  let tooltip = document.getElementById('calendar-tooltip') as HTMLDivElement | null;
+
+  if (!tooltip) {
+    tooltip = document.createElement('div');
+    tooltip.id = 'calendar-tooltip';
+    tooltip.className = 'calendar-tooltip';
+    document.body.appendChild(tooltip);
+  }
+
+  // Add event listeners to all highlighted cells
+  const highlightedCells = container.querySelectorAll('td.has-highlight');
+
+  highlightedCells.forEach((cell) => {
+    const td = cell as HTMLTableCellElement;
+
+    td.addEventListener('mouseenter', () => {
+      const labels = td.dataset.labels;
+
+      if (labels && tooltip) {
+        tooltip.textContent = labels;
+        tooltip.style.display = 'block';
+
+        // Position tooltip near cursor
+        const rect = td.getBoundingClientRect();
+        tooltip.style.left = `${rect.left + rect.width / 2}px`;
+        tooltip.style.top = `${rect.top - 5}px`;
+      }
+    });
+
+    td.addEventListener('mouseleave', () => {
+      if (tooltip) {
+        tooltip.style.display = 'none';
+      }
+    });
+  });
 }

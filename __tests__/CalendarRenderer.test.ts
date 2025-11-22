@@ -18,7 +18,10 @@ jest.mock('../src/utils/GradientUtils', () => ({
 
 jest.mock('../src/core/CalendarGenerator', () => ({
   normalizePeriods: jest.fn((periods: any[]) => periods),
-  getColorsForDate: jest.fn((): string[] => [])
+  getColorsForDate: jest.fn((): { colors: string[]; matchingPeriods: NormalizedPeriod[] } => ({ 
+    colors: [], 
+    matchingPeriods: [] 
+  }))
 }));
 
 jest.mock('../src/utils/DateUtils', () => ({
@@ -172,6 +175,110 @@ describe('CalendarRenderer', () => {
         expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
         'Australia/Sydney'
       );
+    });
+  });
+
+  describe('Tooltip functionality', () => {
+    it('should add has-highlight class to cells with colors', () => {
+      const { getColorsForDate } = require('../src/core/CalendarGenerator');
+      getColorsForDate.mockReturnValue({
+        colors: ['#ff0000'],
+        matchingPeriods: [{ color: '#ff0000', label: 'Test Label', order: 0 }]
+      });
+
+      const periods: NormalizedPeriod[] = [
+        {
+          color: '#ff0000',
+          label: 'Test Label',
+          order: 0
+        }
+      ];
+      const usedPeriods = new Set<number>();
+
+      const table = createMonthTable(2024, 0, periods, usedPeriods, 'UTC');
+      const highlightedCells = table.querySelectorAll('td.has-highlight');
+
+      // Should have highlighted cells based on mock
+      expect(highlightedCells.length).toBeGreaterThan(0);
+    });
+
+    it('should store labels in data-labels attribute', () => {
+      const { getColorsForDate } = require('../src/core/CalendarGenerator');
+      getColorsForDate.mockReturnValue({
+        colors: ['#ff0000'],
+        matchingPeriods: [{ color: '#ff0000', label: 'Test Label', order: 0 }]
+      });
+
+      const periods: NormalizedPeriod[] = [
+        {
+          color: '#ff0000',
+          label: 'Test Label',
+          order: 0
+        }
+      ];
+      const usedPeriods = new Set<number>();
+
+      const table = createMonthTable(2024, 0, periods, usedPeriods, 'UTC');
+      const highlightedCell = table.querySelector('td.has-highlight') as HTMLTableCellElement;
+
+      expect(highlightedCell?.dataset.labels).toBe('Test Label');
+    });
+
+    it('should combine multiple labels with comma separator', () => {
+      const { getColorsForDate } = require('../src/core/CalendarGenerator');
+      getColorsForDate.mockReturnValue({
+        colors: ['#ff0000', '#00ff00'],
+        matchingPeriods: [
+          { color: '#ff0000', label: 'Label 1', order: 0 },
+          { color: '#00ff00', label: 'Label 2', order: 1 }
+        ]
+      });
+
+      const periods: NormalizedPeriod[] = [
+        { color: '#ff0000', label: 'Label 1', order: 0 },
+        { color: '#00ff00', label: 'Label 2', order: 1 }
+      ];
+      const usedPeriods = new Set<number>();
+
+      const table = createMonthTable(2024, 0, periods, usedPeriods, 'UTC');
+      const highlightedCell = table.querySelector('td.has-highlight') as HTMLTableCellElement;
+
+      expect(highlightedCell?.dataset.labels).toBe('Label 1, Label 2');
+    });
+
+    it('should filter out undefined labels', () => {
+      const { getColorsForDate } = require('../src/core/CalendarGenerator');
+      getColorsForDate.mockReturnValue({
+        colors: ['#ff0000', '#00ff00'],
+        matchingPeriods: [
+          { color: '#ff0000', label: 'Label 1', order: 0 },
+          { color: '#00ff00', order: 1 } // No label
+        ]
+      });
+
+      const periods: NormalizedPeriod[] = [
+        { color: '#ff0000', label: 'Label 1', order: 0 },
+        { color: '#00ff00', order: 1 }
+      ];
+      const usedPeriods = new Set<number>();
+
+      const table = createMonthTable(2024, 0, periods, usedPeriods, 'UTC');
+      const highlightedCell = table.querySelector('td.has-highlight') as HTMLTableCellElement;
+
+      expect(highlightedCell?.dataset.labels).toBe('Label 1');
+    });
+
+    it('should create tooltip element when rendering calendar', () => {
+      const container = document.getElementById(
+        'calendar-container'
+      ) as HTMLDivElement;
+      const periods: NormalizedPeriod[] = [];
+
+      renderCalendar(container, [2024], periods, 'UTC');
+
+      const tooltip = document.getElementById('calendar-tooltip');
+      expect(tooltip).toBeTruthy();
+      expect(tooltip?.className).toBe('calendar-tooltip');
     });
   });
 });

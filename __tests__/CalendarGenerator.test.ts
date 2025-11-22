@@ -64,24 +64,27 @@ describe('CalendarGenerator', () => {
   });
 
   describe('getColorsForDate', () => {
-    it('should return colors for date within range', () => {
+    it('should return colors and matching periods for date within range', () => {
       const periods: NormalizedPeriod[] = [
         {
           startDate: new Date('2024-01-01T00:00:00Z'),
           endDate: new Date('2024-01-31T00:00:00Z'),
           color: '#ff0000',
+          label: 'Test Period',
           order: 0
         }
       ];
       const usedPeriods = new Set<number>();
       const testDate = new Date('2024-01-15T00:00:00Z');
 
-      const colors = getColorsForDate(testDate, periods, usedPeriods);
-      expect(colors).toContain('#ff0000');
+      const result = getColorsForDate(testDate, periods, usedPeriods);
+      expect(result.colors).toContain('#ff0000');
+      expect(result.matchingPeriods).toHaveLength(1);
+      expect(result.matchingPeriods[0]?.label).toBe('Test Period');
       expect(usedPeriods.has(0)).toBe(true);
     });
 
-    it('should return empty array for date outside range', () => {
+    it('should return empty arrays for date outside range', () => {
       const periods: NormalizedPeriod[] = [
         {
           startDate: new Date('2024-01-01T00:00:00Z'),
@@ -93,12 +96,13 @@ describe('CalendarGenerator', () => {
       const usedPeriods = new Set<number>();
       const testDate = new Date('2024-02-15T00:00:00Z');
 
-      const colors = getColorsForDate(testDate, periods, usedPeriods);
-      expect(colors).toHaveLength(0);
+      const result = getColorsForDate(testDate, periods, usedPeriods);
+      expect(result.colors).toHaveLength(0);
+      expect(result.matchingPeriods).toHaveLength(0);
       expect(usedPeriods.has(0)).toBe(false);
     });
 
-    it('should return colors for matching individual dates', () => {
+    it('should return colors and periods for matching individual dates', () => {
       const periods: NormalizedPeriod[] = [
         {
           dateObjects: [
@@ -106,39 +110,66 @@ describe('CalendarGenerator', () => {
             new Date('2024-01-20T00:00:00Z')
           ],
           color: '#00ff00',
+          label: 'Individual Dates',
           order: 0
         }
       ];
       const usedPeriods = new Set<number>();
       const testDate = new Date('2024-01-15T00:00:00Z');
 
-      const colors = getColorsForDate(testDate, periods, usedPeriods);
-      expect(colors).toContain('#00ff00');
+      const result = getColorsForDate(testDate, periods, usedPeriods);
+      expect(result.colors).toContain('#00ff00');
+      expect(result.matchingPeriods).toHaveLength(1);
+      expect(result.matchingPeriods[0]?.label).toBe('Individual Dates');
       expect(usedPeriods.has(0)).toBe(true);
     });
 
-    it('should return multiple colors for overlapping periods', () => {
+    it('should return multiple colors and periods for overlapping periods', () => {
       const periods: NormalizedPeriod[] = [
         {
           startDate: new Date('2024-01-01T00:00:00Z'),
           endDate: new Date('2024-01-31T00:00:00Z'),
           color: '#ff0000',
+          label: 'Period 1',
           order: 0
         },
         {
           startDate: new Date('2024-01-15T00:00:00Z'),
           endDate: new Date('2024-02-15T00:00:00Z'),
           color: '#00ff00',
+          label: 'Period 2',
           order: 1
         }
       ];
       const usedPeriods = new Set<number>();
       const testDate = new Date('2024-01-20T00:00:00Z');
 
-      const colors = getColorsForDate(testDate, periods, usedPeriods);
-      expect(colors).toContain('#ff0000');
-      expect(colors).toContain('#00ff00');
-      expect(colors.length).toBe(2);
+      const result = getColorsForDate(testDate, periods, usedPeriods);
+      expect(result.colors).toContain('#ff0000');
+      expect(result.colors).toContain('#00ff00');
+      expect(result.colors.length).toBe(2);
+      expect(result.matchingPeriods).toHaveLength(2);
+      expect(result.matchingPeriods[0]?.label).toBe('Period 1');
+      expect(result.matchingPeriods[1]?.label).toBe('Period 2');
+    });
+
+    it('should include periods without labels in matching periods', () => {
+      const periods: NormalizedPeriod[] = [
+        {
+          startDate: new Date('2024-01-01T00:00:00Z'),
+          endDate: new Date('2024-01-31T00:00:00Z'),
+          color: '#ff0000',
+          // No label
+          order: 0
+        }
+      ];
+      const usedPeriods = new Set<number>();
+      const testDate = new Date('2024-01-15T00:00:00Z');
+
+      const result = getColorsForDate(testDate, periods, usedPeriods);
+      expect(result.colors).toHaveLength(1);
+      expect(result.matchingPeriods).toHaveLength(1);
+      expect(result.matchingPeriods[0]?.label).toBeUndefined();
     });
   });
 });
