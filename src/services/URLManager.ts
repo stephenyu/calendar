@@ -60,4 +60,3 @@ export function updateURLWithConfig(config: CalendarConfig): void {
   const newURL: string = `${window.location.protocol}//${window.location.host}${window.location.pathname}?config=${compressed}`;
   window.history.replaceState({ path: newURL }, '', newURL);
 }
-

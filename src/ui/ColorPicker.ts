@@ -97,4 +97,3 @@ export class ColorPicker {
     this.lastHashPosition = null;
   }
 }
-

@@ -63,9 +63,8 @@ export function getColorsForDate(
         colors.push(period.color);
         usedPeriods.add(i);
       }
-    }
-    // Check individual dates
-    else if (period.dateObjects) {
+    } else if (period.dateObjects) {
+      // Check individual dates
       for (const dObj of period.dateObjects) {
         if (date.getTime() === dObj.getTime()) {
           colors.push(period.color);
@@ -78,4 +77,3 @@ export function getColorsForDate(
 
   return colors;
 }
-

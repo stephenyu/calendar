@@ -5,8 +5,7 @@
 
 import { load, dump } from 'js-yaml';
 import {
-  CalendarConfig,
-  HighlightPeriod
+  CalendarConfig
 } from '../types.js';
 import { preprocessYAML } from '../utils/YAMLPreprocessor.js';
 
@@ -157,4 +156,3 @@ export function parseAndValidateYAML(
 
   return { valid: true, config };
 }
-

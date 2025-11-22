@@ -80,4 +80,3 @@ export function isDateInRange(
 export function isSameDay(date1: Date, date2: Date): boolean {
   return normalizeDate(date1).getTime() === normalizeDate(date2).getTime();
 }
-

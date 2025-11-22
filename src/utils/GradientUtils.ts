@@ -26,4 +26,3 @@ export function generateGradient(colors: string[]): string {
   );
   return `linear-gradient(to bottom, ${colorStops.join(', ')})`;
 }
-

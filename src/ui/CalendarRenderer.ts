@@ -80,7 +80,7 @@ export function createMonthTable(
       if (cellIndex >= firstDay && currentDay <= daysInMonth) {
         // Valid day
         td.textContent = currentDay.toString();
-        
+
         // Format date as YYYY-MM-DD and parse in the configured timezone
         const monthStr = (month + 1).toString().padStart(2, '0');
         const dayStr = currentDay.toString().padStart(2, '0');
@@ -213,4 +213,3 @@ export function renderCalendar(
     container.appendChild(calendarDiv);
   }
 }
-

@@ -1,7 +1,7 @@
 /**
  * @fileoverview YAML Preprocessor
  * Converts user-friendly unquoted format to properly quoted YAML
- * 
+ *
  * Rules:
  * - Values starting with # (hex colors) get quoted
  * - Date-like values (YYYY-MM-DD) get quoted
@@ -29,21 +29,21 @@ function isQuoted(value: string): boolean {
   const trimmed = value.trim();
   return (
     (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+    (trimmed.startsWith('\'') && trimmed.endsWith('\''))
   );
 }
 
 /**
  * Preprocesses YAML to add quotes where needed
- * 
+ *
  * @param yaml - Raw YAML string from user
  * @returns YAML string with proper quotes added
- * 
+ *
  * @example
  * Input:
  *   color: #ffd700
  *   start: 2025-12-01
- * 
+ *
  * Output:
  *   color: "#ffd700"
  *   start: "2025-12-01"
@@ -54,7 +54,7 @@ export function preprocessYAML(yaml: string): string {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
-    
+
     // Skip empty lines and comments
     if (line.trim() === '' || line.trim().startsWith('#')) {
       processedLines.push(line);
@@ -62,15 +62,15 @@ export function preprocessYAML(yaml: string): string {
     }
 
     const trimmedLine = line.trim();
-    
+
     // Check if this is a simple array item (starts with - but has no colon, or value after dash is a date/color)
     if (trimmedLine.startsWith('-')) {
       const dashIndex = line.indexOf('-');
       const afterDash = line.substring(dashIndex + 1).trim();
-      
+
       // Check if afterDash has a colon (meaning it's like "- start: 2025-12-01")
       const colonInArrayItem = afterDash.indexOf(':');
-      
+
       if (colonInArrayItem === -1) {
         // Simple array item: "  - 2025-01-01" or "  - #ffd700"
         if (afterDash && !isQuoted(afterDash)) {
@@ -86,7 +86,7 @@ export function preprocessYAML(yaml: string): string {
         // Array item with key-value: "  - start: 2025-12-01"
         const beforeColon = afterDash.substring(0, colonInArrayItem);
         const afterColon = afterDash.substring(colonInArrayItem + 1).trim();
-        
+
         if (afterColon && !isQuoted(afterColon)) {
           if (isHexColor(afterColon) || isDateString(afterColon)) {
             const beforeDash = line.substring(0, dashIndex + 1);
@@ -144,11 +144,10 @@ export function preprocessYAML(yaml: string): string {
 /**
  * Helper function to format YAML safely
  * Accepts both quoted and unquoted input
- * 
+ *
  * @param yaml - Raw YAML from user (quoted or unquoted)
  * @returns Properly formatted YAML ready for js-yaml parsing
  */
 export function normalizeYAML(yaml: string): string {
   return preprocessYAML(yaml);
 }
-
