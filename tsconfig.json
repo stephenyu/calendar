@@ -22,7 +22,7 @@
     "noImplicitOverride": true,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
-    "types": ["node", "jest"]
+    "types": ["node", "jest", "js-yaml", "luxon"]
   },
   "include": ["src/**/*.ts", "src/**/*.js"],
   "exclude": ["node_modules", "dist", "__tests__"]

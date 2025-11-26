@@ -215,41 +215,41 @@ declare const LZString: {
   decompressFromEncodedURIComponent(str: string): string;
 };
 
-declare const jsyaml: {
-  load(str: string): any;
-  dump(obj: any): string;
-};
+// declare const jsyaml: {
+//   load(str: string): any;
+//   dump(obj: any): string;
+// };
 
-declare const luxon: {
-  DateTime: {
-    fromISO(
-      text: string,
-      opts?: { zone?: string }
-    ): {
-      setZone(zone: string): {
-        startOf(unit: string): {
-          toJSDate(): Date;
-        };
-      };
-      startOf(unit: string): {
-        toJSDate(): Date;
-      };
-      toJSDate(): Date;
-    };
-    fromObject(
-      obj: { year: number; month: number; day: number },
-      opts?: { zone?: string }
-    ): {
-      startOf(unit: string): {
-        toJSDate(): Date;
-      };
-      toJSDate(): Date;
-    };
-    local(): {
-      zoneName: string;
-    };
-  };
-};
+// declare const luxon: {
+//   DateTime: {
+//     fromISO(
+//       text: string,
+//       opts?: { zone?: string }
+//     ): {
+//       setZone(zone: string): {
+//         startOf(unit: string): {
+//           toJSDate(): Date;
+//         };
+//       };
+//       startOf(unit: string): {
+//         toJSDate(): Date;
+//       };
+//       toJSDate(): Date;
+//     };
+//     fromObject(
+//       obj: { year: number; month: number; day: number },
+//       opts?: { zone?: string }
+//     ): {
+//       startOf(unit: string): {
+//         toJSDate(): Date;
+//       };
+//       toJSDate(): Date;
+//     };
+//     local(): {
+//       zoneName: string;
+//     };
+//   };
+// };
 
 // DOM Elements with proper type assertions
 const configInput = document.getElementById(
@@ -786,10 +786,10 @@ function decompressJSON(compressedYamlString: string): string | null {
                 new Date(baseDate).toISOString().split('T')[0] || ''
               ];
               differences.forEach((diff: number) => {
-                const previousDate: Date = new Date(
-                  new Date(dates[dates.length - 1]!).getTime() + diff * 86400000
+                const nextDate: Date = new Date(
+                  baseDate + diff * 86400000
                 );
-                dates.push(previousDate.toISOString().split('T')[0] || '');
+                dates.push(nextDate.toISOString().split('T')[0] || '');
               });
               const result: HighlightPeriod = {
                 dates,

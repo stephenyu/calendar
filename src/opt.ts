@@ -92,6 +92,15 @@ export function compressYAML(yamlString: string): string | null {
       compressedData[1] = compressedHighlightPeriods;
     }
 
+    // Compress timezone if it exists
+    if (parsedData.timezone) {
+      // Ensure compressedData has at least 3 elements
+      while (compressedData.length < 3) {
+        compressedData.push(undefined as never); // Add undefined placeholders
+      }
+      compressedData[2] = parsedData.timezone;
+    }
+
     const jsonString: string = JSON.stringify(compressedData);
     return jsonString.slice(1, -1); // Remove the outer square brackets
   } catch (error) {
@@ -156,10 +165,10 @@ export function decompressJSON(compressedYamlString: string): string | null {
                 new Date(baseDate).toISOString().split('T')[0] || ''
               ];
               differences.forEach((diff: number) => {
-                const previousDate: Date = new Date(
-                  new Date(dates[dates.length - 1]!).getTime() + diff * 86400000
+                const nextDate: Date = new Date(
+                  baseDate + diff * 86400000
                 );
-                dates.push(previousDate.toISOString().split('T')[0] || '');
+                dates.push(nextDate.toISOString().split('T')[0] || '');
               });
               const result: HighlightPeriod = {
                 dates,
@@ -185,6 +194,12 @@ export function decompressJSON(compressedYamlString: string): string | null {
         }
       );
     }
+
+    // Decompress timezone if it exists
+    if (parsedData.length > 2 && parsedData[2]) {
+      decompressedData.timezone = parsedData[2];
+    }
+
 
     return dump(decompressedData);
   } catch (error) {
