@@ -474,9 +474,16 @@ td.day-cell:hover:not(.drag-selecting):not(.drag-erasing):not(.drag-excluding):n
 
 /* Drag-selecting */
 td.drag-selecting {
-  background: #e63946 !important;
-  color: white !important;
   border-radius: 6px;
+}
+
+td.drag-selecting:has(+ td.drag-selecting) {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+td.drag-selecting + td.drag-selecting {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
 }
 
 td.drag-erasing {
@@ -501,21 +508,36 @@ td.color-preview {
   border-radius: 6px;
 }
 
+td.color-preview:has(+ td.color-preview) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+td.color-preview + td.color-preview {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
 td.drag-selecting.today::after,
 td.has-highlight.today::after,
 td.color-preview.today::after {
   border-color: rgba(255, 255, 255, 0.6);
 }
 
-td.drag-selecting.weekend-day,
-td.color-preview.weekend-day {
-  color: white !important;
-}
 
 /* Confirmed highlight */
 td.has-highlight {
   border-radius: 6px;
   cursor: crosshair;
+}
+
+/* Adjacent highlighted cells: flatten inner corners so they form a continuous band */
+td.has-highlight:has(+ td.has-highlight) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+td.has-highlight + td.has-highlight {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
 /* ============================================================

@@ -368,7 +368,53 @@ function createMonthTable(
   }
 
   table.appendChild(tbody);
+  applyVerticalConnections(table);
   return table;
+}
+
+// Flatten top/bottom corners between vertically adjacent highlighted cells so
+// multi-row selections render as a solid band rather than stacked rounded pills.
+function applyVerticalConnections(table: HTMLTableElement): void {
+  const isActive = (cell: Element): boolean =>
+    cell.classList.contains('has-highlight') ||
+    cell.classList.contains('color-preview') ||
+    cell.classList.contains('drag-selecting');
+
+  const rows = Array.from(table.querySelectorAll<HTMLTableRowElement>('tbody tr'));
+
+  // Reset any previously applied vertical radius overrides
+  rows.forEach(row => {
+    Array.from(row.querySelectorAll<HTMLTableCellElement>('td')).forEach(cell => {
+      if (isActive(cell)) {
+        cell.style.borderTopLeftRadius = '';
+        cell.style.borderTopRightRadius = '';
+        cell.style.borderBottomLeftRadius = '';
+        cell.style.borderBottomRightRadius = '';
+      }
+    });
+  });
+
+  for (let r = 0; r < rows.length; r++) {
+    const cells = Array.from(rows[r]!.querySelectorAll<HTMLTableCellElement>('td'));
+    for (let c = 0; c < cells.length; c++) {
+      const cell = cells[c]!;
+      if (!isActive(cell)) continue;
+      const above = rows[r - 1]?.querySelectorAll<HTMLTableCellElement>('td')[c];
+      const below = rows[r + 1]?.querySelectorAll<HTMLTableCellElement>('td')[c];
+      if (above && isActive(above)) {
+        cell.style.borderTopLeftRadius = '0';
+        cell.style.borderTopRightRadius = '0';
+      }
+      if (below && isActive(below)) {
+        cell.style.borderBottomLeftRadius = '0';
+        cell.style.borderBottomRightRadius = '0';
+      }
+    }
+  }
+}
+
+function applyAllVerticalConnections(container: HTMLElement): void {
+  container.querySelectorAll<HTMLTableElement>('.month-table').forEach(applyVerticalConnections);
 }
 
 function renderCalendar(
@@ -490,6 +536,7 @@ class DragSelector {
       onDragEnd: (start: string, end: string) => void;
       onDragMove: (start: string, end: string) => void;
       onDragCancel: () => void;
+      getColor: () => string;
     }
   ) {
     document.addEventListener('mouseup', this.handleMouseUp.bind(this));
@@ -552,16 +599,45 @@ class DragSelector {
     }
     const cls = this._mode === 'erase' ? 'drag-erasing' : 'drag-selecting';
     const other = this._mode === 'erase' ? 'drag-selecting' : 'drag-erasing';
+    const color = cls === 'drag-selecting' ? this.callbacks.getColor() : null;
     this.container.querySelectorAll<HTMLTableCellElement>('td.day-cell[data-date]').forEach(cell => {
       cell.classList.remove(other);
-      cell.classList.toggle(cls, cell.dataset.date! >= lo && cell.dataset.date! <= hi);
+      const inRange = cell.dataset.date! >= lo && cell.dataset.date! <= hi;
+      const wasSelecting = cell.classList.contains('drag-selecting');
+      cell.classList.toggle(cls, inRange);
+      if (color) {
+        if (inRange) {
+          cell.style.background = color;
+          cell.style.color = getTextColor([color]);
+        } else if (wasSelecting) {
+          if (!cell.classList.contains('color-preview')) {
+            cell.style.background = '';
+            cell.style.color = '';
+          }
+          cell.style.borderTopLeftRadius = '';
+          cell.style.borderTopRightRadius = '';
+          cell.style.borderBottomLeftRadius = '';
+          cell.style.borderBottomRightRadius = '';
+        }
+      }
     });
+    applyAllVerticalConnections(this.container);
   }
 
   private clearClasses(): void {
     this.container.querySelectorAll('td.drag-selecting,td.drag-erasing,td.drag-excluding').forEach(c => {
+      const cell = c as HTMLElement;
+      if (cell.classList.contains('drag-selecting') && !cell.classList.contains('color-preview')) {
+        cell.style.background = '';
+        cell.style.color = '';
+      }
+      cell.style.borderTopLeftRadius = '';
+      cell.style.borderTopRightRadius = '';
+      cell.style.borderBottomLeftRadius = '';
+      cell.style.borderBottomRightRadius = '';
       c.classList.remove('drag-selecting', 'drag-erasing', 'drag-excluding');
     });
+    applyAllVerticalConnections(this.container);
   }
 }
 
@@ -649,7 +725,8 @@ class CalendarApp {
         if (!this.dragSelector.isExcludeMode) {
           this.clearSelection();
         }
-      }
+      },
+      getColor: () => this.editorColor.value
     });
   }
 
@@ -679,6 +756,7 @@ class CalendarApp {
         cell.style.color = getTextColor([color]);
       }
     });
+    applyAllVerticalConnections(this.calendarContainer);
   }
 
   private updateSelectionStats(): void {

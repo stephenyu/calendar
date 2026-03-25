@@ -34,6 +34,20 @@ npm test -- -t "test name pattern"
 
 After editing source files, rerun the tsc+copy steps and hard-refresh the browser (`Cmd+Shift+R`).
 
+### CSS-only changes (no TS touched)
+
+Skip the tsc step — just copy the CSS:
+
+```bash
+cp src/style.css style.min.css
+```
+
+### TS changes (no CSS touched)
+
+```bash
+npx tsc -p tsconfig.dev.json && cp dist/script-bundle.js script.min.js
+```
+
 ## Architecture — Two Parallel Implementations
 
 **This is the most important thing to understand about this codebase.**
@@ -75,6 +89,16 @@ When multiple highlight periods overlap on a date, `generateGradient()` blends a
 
 ### CSS Specificity
 Day cell base styles use `.month-table tbody td` (specificity `0,1,2`). Overrides for variants like `out-of-month` or `today` must use `.month-table tbody td.<class>` to win.
+
+### Cell Highlight States
+There are three visual states for highlighted date cells, and they should always look identical:
+- `drag-selecting` — cells being actively dragged over (mid-drag)
+- `color-preview` — cells in the confirmed selection, not yet saved
+- `has-highlight` — saved periods rendered from config
+
+All three use inline `style.background` and `style.color = getTextColor([color])`. The CSS for each class provides only `border-radius`; it does not hardcode colors. Avoid adding `color` or `background` rules to these classes in CSS — use JS instead.
+
+The pill/band effect (rounded outer corners, flat inner corners between adjacent cells) is handled in CSS using `:has(+ .class)` and `+ .class` sibling selectors. This works within a row; row boundaries naturally retain rounded corners.
 
 ### Date Handling
 All dates parsed through `luxon.DateTime.fromISO()` and normalized to start-of-day before comparisons. Timezone defaults to system local.
