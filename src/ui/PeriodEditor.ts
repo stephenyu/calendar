@@ -62,7 +62,7 @@ export class PeriodEditor {
   }
 
   private handleConfirm(): void {
-    if (!this.currentRange) return;
+    if (!this.currentRange) { return; }
 
     const { start, end } = this.currentRange;
     const color = this.colorInput.value;

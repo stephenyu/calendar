@@ -32,7 +32,7 @@ export class DragSelector {
   }
 
   continueDrag(dateStr: string): void {
-    if (!this.isDragging) return;
+    if (!this.isDragging) { return; }
     this.endDate = dateStr;
     this.updateSelectionClasses();
     this.callbacks.onDragMove(dateStr);
@@ -50,7 +50,7 @@ export class DragSelector {
   }
 
   private handleMouseUp(): void {
-    if (!this.isDragging) return;
+    if (!this.isDragging) { return; }
     const endDate = this.endDate!;
     this.isDragging = false;
     // Keep selection classes visible until explicitly cleared
@@ -58,14 +58,14 @@ export class DragSelector {
   }
 
   private handleDocumentLeave(): void {
-    if (!this.isDragging) return;
+    if (!this.isDragging) { return; }
     this.isDragging = false;
     this.clearSelectionClasses();
     this.callbacks.onDragCancel();
   }
 
   private updateSelectionClasses(): void {
-    if (!this.startDate || !this.endDate) return;
+    if (!this.startDate || !this.endDate) { return; }
 
     const cells = this.container.querySelectorAll<HTMLTableCellElement>(
       'td.day-cell[data-date]'

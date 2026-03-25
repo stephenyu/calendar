@@ -26,9 +26,7 @@ export function parseYAML(yamlString: string): CalendarConfig | null {
     const processedYaml = preprocessYAML(yamlString);
     const config = load(processedYaml) as CalendarConfig;
     return config;
-  } catch (error) {
-    const err = error as Error;
-    console.error('[ConfigManager] Error parsing YAML:', err);
+  } catch (_error) {
     return null;
   }
 }

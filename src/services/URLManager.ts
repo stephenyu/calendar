@@ -35,9 +35,7 @@ export function getConfigFromURL(): CalendarConfig | null {
     }
 
     return load(yamlString) as CalendarConfig;
-  } catch (e) {
-    const error = e as Error;
-    console.error('[URLManager] Error decoding configuration from URL:', error);
+  } catch (_e) {
     return null;
   }
 }
@@ -51,7 +49,6 @@ export function updateURLWithConfig(config: CalendarConfig): void {
   const compressedJSON: string | null = compressYAML(yamlString);
 
   if (!compressedJSON) {
-    console.error('[URLManager] Failed to compress config');
     return;
   }
 

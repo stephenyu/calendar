@@ -19,7 +19,7 @@ function getLuminance(hex: string): number {
  */
 export function getTextColor(colors: string[]): string {
   const hexColors = colors.filter(c => /^#[0-9a-fA-F]{6}$/.test(c));
-  if (hexColors.length === 0) return 'white';
+  if (hexColors.length === 0) { return 'white'; }
   const avgLuminance = hexColors.reduce((sum, c) => sum + getLuminance(c), 0) / hexColors.length;
   return avgLuminance > 0.179 ? '#222' : 'white';
 }

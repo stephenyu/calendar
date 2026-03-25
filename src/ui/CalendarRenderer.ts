@@ -153,7 +153,7 @@ export function createLegend(periods: NormalizedPeriod[]): HTMLDivElement {
   legendDiv.className = 'legend';
 
   for (const p of periods) {
-    if (!p.label) continue;
+    if (!p.label) { continue; }
 
     const legendItem: HTMLDivElement = document.createElement('div');
     legendItem.className = 'legend-item';
@@ -197,7 +197,7 @@ function createGlobalLegend(
     const deleteBtn: HTMLButtonElement = document.createElement('button');
     deleteBtn.className = 'legend-delete';
     deleteBtn.textContent = '×';
-    deleteBtn.title = `Remove period`;
+    deleteBtn.title = 'Remove period';
     deleteBtn.addEventListener('click', () => onDelete(i));
 
     legendItem.appendChild(legendColor);
@@ -304,7 +304,7 @@ function initializeTooltips(
     const td = cell as HTMLTableCellElement;
 
     td.addEventListener('mouseenter', () => {
-      if (isDragging && isDragging()) return;
+      if (isDragging && isDragging()) { return; }
 
       const labels = td.dataset.labels;
 
