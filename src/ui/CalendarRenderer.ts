@@ -228,6 +228,18 @@ export function renderCalendar(
     timezone
   );
 
+  const layoutWrapper: HTMLDivElement = document.createElement('div');
+  layoutWrapper.className = 'calendar-layout';
+
+  // Global legend on the left
+  if (highlightPeriods.length > 0 && onDeletePeriod) {
+    const globalLegend = createGlobalLegend(highlightPeriods, onDeletePeriod);
+    layoutWrapper.appendChild(globalLegend);
+  }
+
+  const calendarContent: HTMLDivElement = document.createElement('div');
+  calendarContent.className = 'calendar-content';
+
   for (const year of years) {
     const calendarDiv: HTMLDivElement = document.createElement('div');
     calendarDiv.className = 'calendar';
@@ -260,14 +272,11 @@ export function renderCalendar(
     yearTable.appendChild(tbody);
     calendarDiv.appendChild(yearTable);
 
-    container.appendChild(calendarDiv);
+    calendarContent.appendChild(calendarDiv);
   }
 
-  // Global legend showing all periods with delete buttons
-  if (highlightPeriods.length > 0 && onDeletePeriod) {
-    const globalLegend = createGlobalLegend(highlightPeriods, onDeletePeriod);
-    container.appendChild(globalLegend);
-  }
+  layoutWrapper.appendChild(calendarContent);
+  container.appendChild(layoutWrapper);
 
   // Initialize tooltips after rendering
   initializeTooltips(container, isDragging);

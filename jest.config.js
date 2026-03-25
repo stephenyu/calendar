@@ -28,9 +28,5 @@ module.exports = {
   // Ignore patterns
   testPathIgnorePatterns: ['/node_modules/', '/dist/', '/build/'],
 
-  // Global setup
-  globals: {
-    jsyaml: {},
-    LZString: {}
-  }
+
 };

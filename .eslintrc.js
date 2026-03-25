@@ -52,10 +52,7 @@ module.exports = {
     window: 'readonly',
     localStorage: 'readonly',
 
-    // External libraries
-    jsyaml: 'readonly',
-    LZString: 'readonly',
-    luxon: 'readonly'
+    // External libraries (none — all imported as ES modules)
   },
   overrides: [
     {
@@ -118,12 +115,5 @@ module.exports = {
         'valid-jsdoc': 'off'
       }
     },
-    {
-      files: ['scripts/**/*.js'],
-      rules: {
-        // Allow console in build scripts
-        'no-console': 'off'
-      }
-    }
   ]
 };

@@ -432,20 +432,50 @@ td.has-highlight {
    LEGEND
    ============================================================ */
 
+.calendar-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.calendar-content {
+  flex: 1;
+  min-width: 0;
+}
+
 .legend {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  align-items: flex-start;
+  align-items: center;
   padding-bottom: 8px;
+  flex-shrink: 0;
+  width: 160px;
+}
+
+.legend-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  position: sticky;
+  top: 16px;
 }
 
 .legend-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   font-size: 13px;
   color: #555;
+}
+
+.legend-item span {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  line-height: 1.4;
 }
 
 .legend-color {

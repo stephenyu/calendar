@@ -3,7 +3,7 @@
  * Configures the testing environment with necessary globals and mocks
  */
 
-// Mock external libraries
+// Mock external library globals (referenced by calendar.test.js)
 global.jsyaml = {
   load: jest.fn(),
   dump: jest.fn()

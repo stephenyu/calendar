@@ -7,22 +7,11 @@
  */
 
 // ============================================================================
-// EXTERNAL LIBRARY DECLARATIONS
+// EXTERNAL LIBRARY IMPORTS
 // ============================================================================
 
-declare const LZString: {
-  compressToEncodedURIComponent(str: string): string;
-  decompressFromEncodedURIComponent(str: string): string;
-};
-
-declare const luxon: {
-  DateTime: {
-    fromISO(text: string, opts?: { zone?: string }): {
-      startOf(unit: string): { toJSDate(): Date };
-    };
-    local(): { zoneName: string };
-  };
-};
+import LZString from 'lz-string';
+import { DateTime } from 'luxon';
 
 // ============================================================================
 // TYPES
@@ -176,8 +165,8 @@ function updateURLWithConfig(config: CalendarConfig): void {
 // ============================================================================
 
 function parseDateInTimezone(dateStr: string, timezone: string): Date {
-  const tz = timezone === 'local' ? luxon.DateTime.local().zoneName : timezone;
-  return luxon.DateTime.fromISO(dateStr, { zone: tz }).startOf('day').toJSDate();
+  const tz = timezone === 'local' ? DateTime.local().zoneName : timezone;
+  return DateTime.fromISO(dateStr, { zone: tz }).startOf('day').toJSDate();
 }
 
 function generateGradient(colors: string[]): string {
@@ -390,6 +379,42 @@ function renderCalendar(
   container.innerHTML = '';
   const normalizedPeriods = normalizePeriods(periods, timezone);
 
+  const layout = document.createElement('div');
+  layout.className = 'calendar-layout';
+
+  // Legend on the left (always rendered to keep calendar position stable)
+  const legend = document.createElement('div');
+  legend.className = 'legend';
+  if (periods.length > 0 && onDeletePeriod) {
+    const legendInner = document.createElement('div');
+    legendInner.className = 'legend-inner';
+    periods.forEach((p, i) => {
+      const item = document.createElement('div');
+      item.className = 'legend-item';
+
+      const swatch = document.createElement('div');
+      swatch.className = 'legend-color';
+      swatch.style.backgroundColor = p.color;
+
+      const lbl = document.createElement('span');
+      lbl.textContent = p.label ?? `Period ${i + 1}`;
+
+      const del = document.createElement('button');
+      del.className = 'legend-delete';
+      del.textContent = '×';
+      del.addEventListener('click', () => onDeletePeriod(i));
+
+      item.append(swatch, lbl, del);
+      legendInner.appendChild(item);
+    });
+    legend.appendChild(legendInner);
+  }
+  layout.appendChild(legend);
+
+  // Calendar content on the right
+  const content = document.createElement('div');
+  content.className = 'calendar-content';
+
   for (const year of years) {
     const calDiv = document.createElement('div');
     calDiv.className = 'calendar';
@@ -411,34 +436,11 @@ function renderCalendar(
 
     yearTable.appendChild(tbody);
     calDiv.appendChild(yearTable);
-    container.appendChild(calDiv);
+    content.appendChild(calDiv);
   }
 
-  // Global legend for all periods
-  if (periods.length > 0 && onDeletePeriod) {
-    const legend = document.createElement('div');
-    legend.className = 'legend';
-    periods.forEach((p, i) => {
-      const item = document.createElement('div');
-      item.className = 'legend-item';
-
-      const swatch = document.createElement('div');
-      swatch.className = 'legend-color';
-      swatch.style.backgroundColor = p.color;
-
-      const lbl = document.createElement('span');
-      lbl.textContent = p.label ?? `Period ${i + 1}`;
-
-      const del = document.createElement('button');
-      del.className = 'legend-delete';
-      del.textContent = '×';
-      del.addEventListener('click', () => onDeletePeriod(i));
-
-      item.append(swatch, lbl, del);
-      legend.appendChild(item);
-    });
-    container.appendChild(legend);
-  }
+  layout.appendChild(content);
+  container.appendChild(layout);
 
   initializeTooltips(container, isDragging);
 }
