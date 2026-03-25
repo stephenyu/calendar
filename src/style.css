@@ -1,190 +1,493 @@
-body {
-  font-family: monospace;
-  margin: 0;
-  padding: 0;
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
-#main-container {
-  display: flex;
-  flex-direction: row;
-  height: 100vh;
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f0f2f5;
+  color: #2d2d2d;
+  -webkit-font-smoothing: antialiased;
 }
+
+#app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ============================================================
+   PAGE HEADER
+   ============================================================ */
+
+#page-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 28px 48px 20px;
+  background: #f0f2f5;
+  flex-shrink: 0;
+}
+
+/* Year display */
+#year-display-area {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+#current-years-label {
+  font-size: 88px;
+  font-weight: 900;
+  color: #1a1a2e;
+  line-height: 1;
+  letter-spacing: -3px;
+  user-select: none;
+}
+
+#prev-year-btn,
+#next-year-btn {
+  font-size: 36px;
+  line-height: 1;
+  color: #aaa;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 6px;
+  transition: color 0.15s;
+  align-self: flex-end;
+  margin-bottom: 8px;
+}
+
+#prev-year-btn:hover,
+#next-year-btn:hover {
+  color: #1a1a2e;
+}
+
+/* Selection panel */
+#selection-panel {
+  flex: 1;
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #e8e9eb;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  min-height: 76px;
+}
+
+#selection-panel[hidden] {
+  display: none;
+}
+
+.sp-icon {
+  color: #e63946;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.sp-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.sp-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #aaa;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.sp-stats {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  white-space: nowrap;
+}
+
+.sp-divider {
+  width: 1px;
+  height: 36px;
+  background: #e8e9eb;
+  flex-shrink: 0;
+}
+
+.sp-editor {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+#editor-name {
+  padding: 8px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  outline: none;
+  width: 200px;
+  transition: border-color 0.15s;
+  color: #2d2d2d;
+}
+
+#editor-name:focus {
+  border-color: #e63946;
+  box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+}
+
+#editor-color {
+  width: 36px;
+  height: 36px;
+  padding: 2px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  background: white;
+}
+
+#editor-confirm {
+  background: #e63946;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+#editor-confirm:hover {
+  background: #c1121f;
+}
+
+#editor-cancel {
+  background: white;
+  color: #666;
+  border: 1px solid #e0e0e0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#editor-cancel:hover {
+  background: #fafafa;
+  border-color: #ccc;
+}
+
+
+/* ============================================================
+   CALENDAR CONTAINER
+   ============================================================ */
 
 #calendar-container {
   flex: 1;
-  padding: 20px;
-  overflow-y: auto;
+  padding: 8px 48px 48px;
+  overflow: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-#config-container {
-  width: 30%;
-  padding: 20px;
-  box-sizing: border-box;
-  border-left: 1px solid #ccc;
-}
-
-/* Timezone Selector */
-.timezone-selector {
-  margin-bottom: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.timezone-selector label {
-  font-weight: bold;
-  font-size: 14px;
-}
-
-#timezone-select {
-  width: 100%;
-  padding: 8px;
-  font-family: monospace;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: white;
-}
-
-#config-input {
-  width: 100%;
-  height: calc(100% - 120px);
-  font-family: monospace;
-  font-size: 14px;
-}
-
-#save-button {
-  display: block;
-  margin: 10px auto;
-  padding: 10px 20px;
-  font-size: 16px;
-}
-
 .calendar {
-  margin: 20px 0;
-  text-align: center;
+  margin-bottom: 40px;
 }
 
-.calendar h2 {
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-/* Year layout table */
+/* 4-column year table — sizes to content, never stretches */
 .year-table {
-  border-collapse: separate; /* Allow border-spacing */
-  border-spacing: 32px; /* Add 32px spacing between months and rows */
-  margin-bottom: 20px;
-  border: none;
+  border-collapse: collapse;
 }
 
-.year-table td {
+.year-table > tbody > tr > td {
   vertical-align: top;
+  padding: 0 44px 0 0;
   border: none;
 }
 
-/* Month table */
+.year-table > tbody > tr > td:last-child {
+  padding-right: 0;
+}
+
+/* ============================================================
+   MONTH TABLE
+   ============================================================ */
+
 .month-table {
   border-collapse: collapse;
-  margin: 0 auto;
+  margin-bottom: 32px;
+}
+
+/* Month name */
+.month-name-row th {
+  text-align: left;
+  padding: 0 0 14px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #e63946;
+  letter-spacing: 0.2px;
   border: none;
 }
 
-.month-table th,
-.month-table td {
+/* Weekday headers */
+.weekday-row th {
+  font-size: 11px;
+  font-weight: 600;
+  color: #bbb;
+  text-align: center;
+  padding: 0 0 8px 0;
   border: none;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  min-width: 34px;
+  height: 22px;
+}
+
+.weekday-row th.weekend-header {
+  color: #e63946;
+}
+
+/* Day cells — fixed size, never stretch */
+.month-table tbody td {
+  border: none;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
   text-align: center;
   vertical-align: middle;
-  font-size: 16px;
-  padding: 2px;
+  font-size: 13px;
+  font-weight: 400;
+  color: #2d2d2d;
+  padding: 0;
+  position: relative;
 }
 
-.month-name-row th {
-  font-weight: bold;
-  font-size: 18px;
-  text-align: center;
-  padding: 5px;
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1100px) {
+  #page-header {
+    padding: 20px 32px 16px;
+  }
+  #calendar-container {
+    padding: 8px 32px 40px;
+  }
+  .year-table > tbody > tr > td {
+    padding-right: 32px;
+  }
 }
 
-.weekday-row th {
-  font-weight: bold;
-  background: #f0f0f0;
+@media (max-width: 860px) {
+  #page-header {
+    padding: 16px 20px 12px;
+    gap: 16px;
+  }
+  #current-years-label {
+    font-size: 64px;
+    letter-spacing: -2px;
+  }
+  #selection-panel {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .sp-divider {
+    display: none;
+  }
+  #calendar-container {
+    padding: 8px 20px 32px;
+  }
+  .year-table > tbody > tr > td {
+    padding-right: 20px;
+  }
+  .weekday-row th,
+  .month-table tbody td {
+    width: 30px;
+    min-width: 30px;
+  }
+  .month-table tbody td {
+    height: 30px;
+  }
 }
 
-/* Modal Styles */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 999;
-  padding-top: 100px;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
+@media (max-width: 640px) {
+  #page-header {
+    flex-wrap: wrap;
+    padding: 14px 16px 10px;
+  }
+  #current-years-label {
+    font-size: 52px;
+    letter-spacing: -1px;
+  }
+  #selection-panel {
+    order: 3;
+    flex: 0 0 100%;
+  }
+  #header-controls {
+    align-self: center;
+    margin-bottom: 0;
+  }
+  #calendar-container {
+    padding: 8px 12px 24px;
+  }
+  .year-table > tbody > tr > td {
+    padding-right: 12px;
+  }
+  .weekday-row th,
+  .month-table tbody td {
+    width: 26px;
+    min-width: 26px;
+  }
+  .month-table tbody td {
+    height: 26px;
+    font-size: 11px;
+  }
+  .month-name-row th {
+    font-size: 12px;
+    padding-bottom: 10px;
+  }
+  .weekday-row th {
+    font-size: 10px;
+  }
 }
 
-.modal-content {
-  background-color: #fefefe;
-  margin: auto;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 300px;
-  text-align: center;
+/* Weekend days */
+td.weekend-day {
+  color: #e63946;
 }
 
-.close {
-  float: right;
-  font-size: 24px;
-  font-weight: bold;
-  cursor: pointer;
+/* Out-of-month days */
+.month-table tbody td.out-of-month {
+  color: #d0d0d0;
+  cursor: default;
+  pointer-events: none;
 }
 
-/* Legend Styles */
+.month-table tbody td.out-of-month.weekend-day {
+  color: #f0aaad;
+}
+
+/* Today indicator */
+td.today {
+  font-weight: 700;
+}
+
+td.today::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  border: 2px solid #e63946;
+  pointer-events: none;
+}
+
+/* Interactive day cells */
+td.day-cell {
+  cursor: crosshair;
+  user-select: none;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+
+td.day-cell:hover:not(.drag-selecting):not(.has-highlight) {
+  background: rgba(230, 57, 70, 0.07);
+}
+
+/* Drag-selecting */
+td.drag-selecting {
+  background: #e63946 !important;
+  color: white !important;
+  border-radius: 6px;
+}
+
+td.drag-selecting.today::after,
+td.has-highlight.today::after {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+td.drag-selecting.weekend-day {
+  color: white !important;
+}
+
+/* Confirmed highlight */
+td.has-highlight {
+  border-radius: 6px;
+  cursor: crosshair;
+}
+
+/* ============================================================
+   LEGEND
+   ============================================================ */
+
 .legend {
-  margin-top: 20px;
   display: flex;
-  flex-direction: column; /* Stack legend items vertically */
-  gap: 10px;
-  justify-content: flex-start;
+  flex-direction: column;
+  gap: 8px;
   align-items: flex-start;
+  padding-bottom: 8px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 14px;
+  gap: 8px;
+  font-size: 13px;
+  color: #555;
 }
 
 .legend-color {
-  width: 16px;
-  height: 16px;
-  border: 1px solid #000;
-  box-sizing: border-box;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
 }
 
-/* Tooltip Styles */
+.legend-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #ccc;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.legend-delete:hover {
+  color: #e63946;
+}
+
+/* ============================================================
+   TOOLTIP
+   ============================================================ */
+
 .calendar-tooltip {
   display: none;
   position: fixed;
-  background-color: rgba(0, 0, 0, 0.85);
+  background: rgba(26, 26, 46, 0.92);
   color: white;
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 13px;
-  font-family: monospace;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
   pointer-events: none;
   z-index: 1000;
   white-space: nowrap;
   transform: translate(-50%, -100%);
-  margin-top: -5px;
+  margin-top: -6px;
 }
 
 .calendar-tooltip::after {
@@ -194,9 +497,5 @@ body {
   left: 50%;
   transform: translateX(-50%);
   border: 5px solid transparent;
-  border-top-color: rgba(0, 0, 0, 0.85);
-}
-
-td.has-highlight {
-  cursor: pointer;
+  border-top-color: rgba(26, 26, 46, 0.92);
 }

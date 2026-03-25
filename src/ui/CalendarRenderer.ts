@@ -10,28 +10,28 @@ import {
   MONTH_NAMES,
   MONTH_ROWS
 } from '../types.js';
-import { generateGradient } from '../utils/GradientUtils.js';
+import { generateGradient, getTextColor } from '../utils/GradientUtils.js';
 import {
   normalizePeriods,
   getColorsForDate
 } from '../core/CalendarGenerator.js';
 import { parseDateInTimezone } from '../utils/DateUtils.js';
 
+export interface DragCallbacks {
+  onDragStart: (dateStr: string) => void;
+  onDragMove: (dateStr: string) => void;
+}
+
 /**
  * Creates a month table element with highlighted dates based on periods
- * @param year - The year for the month
- * @param month - The month (0-11, where 0 is January)
- * @param periods - Array of normalized period objects
- * @param usedPeriods - Set to track which periods are used (for legend)
- * @param timezone - IANA timezone string for date parsing
- * @returns The generated month table element
  */
 export function createMonthTable(
   year: number,
   month: Month,
   periods: NormalizedPeriod[],
   usedPeriods: Set<number>,
-  timezone: string
+  timezone: string,
+  dragCallbacks?: DragCallbacks
 ): HTMLTableElement {
   const monthTable: HTMLTableElement = document.createElement('table');
   monthTable.className = 'month-table';
@@ -63,12 +63,13 @@ export function createMonthTable(
 
   const firstDay: number = new Date(year, month, 1).getDay();
   const daysInMonth: number = new Date(year, month + 1, 0).getDate();
+  const prevMonthLastDay: number = new Date(year, month, 0).getDate();
 
-  // Total cells needed
   const totalCells: number = firstDay + daysInMonth;
   const weeks: number = Math.ceil(totalCells / 7);
 
   let currentDay: number = 1;
+  let nextMonthDay: number = 1;
 
   for (let w = 0; w < weeks; w++) {
     const tr: HTMLTableRowElement = document.createElement('tr');
@@ -77,15 +78,21 @@ export function createMonthTable(
       const td: HTMLTableCellElement = document.createElement('td');
 
       const cellIndex: number = w * 7 + d;
-      if (cellIndex >= firstDay && currentDay <= daysInMonth) {
-        // Valid day
+      if (cellIndex < firstDay) {
+        // Previous month overflow
+        td.textContent = (prevMonthLastDay - (firstDay - 1 - cellIndex)).toString();
+        td.classList.add('out-of-month');
+      } else if (currentDay <= daysInMonth) {
         td.textContent = currentDay.toString();
 
-        // Format date as YYYY-MM-DD and parse in the configured timezone
         const monthStr = (month + 1).toString().padStart(2, '0');
         const dayStr = currentDay.toString().padStart(2, '0');
         const dateStr = `${year}-${monthStr}-${dayStr}`;
         const dateObj: Date = parseDateInTimezone(dateStr, timezone);
+
+        // Mark as interactive day cell with its date
+        td.classList.add('day-cell');
+        td.dataset.date = dateStr;
 
         const { colors, matchingPeriods } = getColorsForDate(
           dateObj,
@@ -95,12 +102,12 @@ export function createMonthTable(
 
         if (colors.length > 0) {
           td.style.background = generateGradient(colors);
+          td.style.color = getTextColor(colors);
           td.classList.add('has-highlight');
 
-          // Store labels for tooltip
           const labels = matchingPeriods
             .map(p => p.label)
-            .filter(label => label) // Filter out undefined/empty labels
+            .filter(label => label)
             .join(', ');
 
           if (labels) {
@@ -108,10 +115,23 @@ export function createMonthTable(
           }
         }
 
+        // Attach drag event listeners
+        if (dragCallbacks) {
+          td.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            dragCallbacks.onDragStart(dateStr);
+          });
+          td.addEventListener('mouseover', () => {
+            dragCallbacks.onDragMove(dateStr);
+          });
+        }
+
         currentDay++;
       } else {
-        // Blank cell
-        td.textContent = '';
+        // Next month overflow
+        td.textContent = nextMonthDay.toString();
+        td.classList.add('out-of-month');
+        nextMonthDay++;
       }
 
       tr.appendChild(td);
@@ -126,17 +146,14 @@ export function createMonthTable(
 
 /**
  * Creates a legend element for labeled periods
- * @param periods - Array of normalized periods to display in legend
- * @returns The generated legend div element
+ * Exported for testing purposes
  */
 export function createLegend(periods: NormalizedPeriod[]): HTMLDivElement {
   const legendDiv: HTMLDivElement = document.createElement('div');
   legendDiv.className = 'legend';
 
   for (const p of periods) {
-    if (!p.label) {
-      continue;
-    }
+    if (!p.label) continue;
 
     const legendItem: HTMLDivElement = document.createElement('div');
     legendItem.className = 'legend-item';
@@ -157,21 +174,55 @@ export function createLegend(periods: NormalizedPeriod[]): HTMLDivElement {
 }
 
 /**
+ * Creates a global legend showing all periods with delete buttons
+ */
+function createGlobalLegend(
+  periods: HighlightPeriod[],
+  onDelete: (index: number) => void
+): HTMLDivElement {
+  const legendDiv: HTMLDivElement = document.createElement('div');
+  legendDiv.className = 'legend';
+
+  periods.forEach((p, i) => {
+    const legendItem: HTMLDivElement = document.createElement('div');
+    legendItem.className = 'legend-item';
+
+    const legendColor: HTMLDivElement = document.createElement('div');
+    legendColor.className = 'legend-color';
+    legendColor.style.backgroundColor = p.color;
+
+    const legendLabel: HTMLSpanElement = document.createElement('span');
+    legendLabel.textContent = p.label ?? `Period ${i + 1}`;
+
+    const deleteBtn: HTMLButtonElement = document.createElement('button');
+    deleteBtn.className = 'legend-delete';
+    deleteBtn.textContent = '×';
+    deleteBtn.title = `Remove period`;
+    deleteBtn.addEventListener('click', () => onDelete(i));
+
+    legendItem.appendChild(legendColor);
+    legendItem.appendChild(legendLabel);
+    legendItem.appendChild(deleteBtn);
+    legendDiv.appendChild(legendItem);
+  });
+
+  return legendDiv;
+}
+
+/**
  * Generates calendar displays for multiple years with highlighted periods
- * @param container - DOM element to render calendar into
- * @param years - Array of years to display
- * @param highlightPeriods - Array of period objects to highlight
- * @param timezone - IANA timezone string for date interpretation
  */
 export function renderCalendar(
   container: HTMLDivElement,
   years: number[],
   highlightPeriods: HighlightPeriod[],
-  timezone: string
+  timezone: string,
+  dragCallbacks?: DragCallbacks,
+  onDeletePeriod?: (order: number) => void,
+  isDragging?: () => boolean
 ): void {
   container.innerHTML = '';
 
-  // Normalize periods
   const normalizedPeriods: NormalizedPeriod[] = normalizePeriods(
     highlightPeriods,
     timezone
@@ -185,10 +236,8 @@ export function renderCalendar(
     yearHeader.textContent = year.toString();
     calendarDiv.appendChild(yearHeader);
 
-    // Track which highlight periods are used this year
     const usedPeriods: Set<number> = new Set();
 
-    // Create the year table
     const yearTable: HTMLTableElement = document.createElement('table');
     yearTable.className = 'year-table';
 
@@ -200,7 +249,7 @@ export function renderCalendar(
       for (const monthIndex of rowMonths) {
         const td: HTMLTableCellElement = document.createElement('td');
         td.appendChild(
-          createMonthTable(year, monthIndex, normalizedPeriods, usedPeriods, timezone)
+          createMonthTable(year, monthIndex, normalizedPeriods, usedPeriods, timezone, dragCallbacks)
         );
         tr.appendChild(td);
       }
@@ -211,29 +260,26 @@ export function renderCalendar(
     yearTable.appendChild(tbody);
     calendarDiv.appendChild(yearTable);
 
-    // Add legend for labeled periods used this year
-    const labeledPeriods: NormalizedPeriod[] = Array.from(usedPeriods)
-      .map((i: number) => normalizedPeriods[i]!)
-      .filter((p: NormalizedPeriod) => p.label);
-
-    if (labeledPeriods.length > 0) {
-      const legendDiv = createLegend(labeledPeriods);
-      calendarDiv.appendChild(legendDiv);
-    }
-
     container.appendChild(calendarDiv);
   }
 
+  // Global legend showing all periods with delete buttons
+  if (highlightPeriods.length > 0 && onDeletePeriod) {
+    const globalLegend = createGlobalLegend(highlightPeriods, onDeletePeriod);
+    container.appendChild(globalLegend);
+  }
+
   // Initialize tooltips after rendering
-  initializeTooltips(container);
+  initializeTooltips(container, isDragging);
 }
 
 /**
  * Initializes tooltip functionality for highlighted dates
- * @param container - The calendar container element
  */
-function initializeTooltips(container: HTMLDivElement): void {
-  // Create tooltip element
+function initializeTooltips(
+  container: HTMLDivElement,
+  isDragging?: () => boolean
+): void {
   let tooltip = document.getElementById('calendar-tooltip') as HTMLDivElement | null;
 
   if (!tooltip) {
@@ -243,20 +289,20 @@ function initializeTooltips(container: HTMLDivElement): void {
     document.body.appendChild(tooltip);
   }
 
-  // Add event listeners to all highlighted cells
   const highlightedCells = container.querySelectorAll('td.has-highlight');
 
   highlightedCells.forEach((cell) => {
     const td = cell as HTMLTableCellElement;
 
     td.addEventListener('mouseenter', () => {
+      if (isDragging && isDragging()) return;
+
       const labels = td.dataset.labels;
 
       if (labels && tooltip) {
         tooltip.textContent = labels;
         tooltip.style.display = 'block';
 
-        // Position tooltip near cursor
         const rect = td.getBoundingClientRect();
         tooltip.style.left = `${rect.left + rect.width / 2}px`;
         tooltip.style.top = `${rect.top - 5}px`;

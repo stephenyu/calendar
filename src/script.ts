@@ -1,14 +1,12 @@
 /**
- * @fileoverview Customizable Calendar Application (Refactored)
- * A web-based calendar application with YAML configuration support.
- * Features include multi-year view, color-coded periods, and URL sharing.
+ * @fileoverview Customizable Calendar Application
+ * A web-based calendar application with drag-to-select period creation.
  *
- * @version 2.0.0
+ * @version 3.0.0
  * @author Stephen Yu
  */
 
 import { CalendarApp, CalendarAppElements } from './CalendarApp.js';
-import { ColorPickerElements } from './ui/ColorPicker.js';
 
 // External library declarations (loaded from CDN in browser)
 declare const LZString: {
@@ -33,56 +31,35 @@ declare const luxon: {
  * Gets DOM elements and initializes the calendar application
  */
 function init(): void {
-  // Get DOM elements
-  const configInput = document.getElementById(
-    'config-input'
-  ) as HTMLTextAreaElement;
-  const saveButton = document.getElementById('save-button') as HTMLButtonElement;
-  const calendarContainer = document.getElementById(
-    'calendar-container'
-  ) as HTMLDivElement;
-  const timezoneSelect = document.getElementById(
-    'timezone-select'
-  ) as HTMLSelectElement;
+  const calendarContainer = document.getElementById('calendar-container') as HTMLDivElement;
+  const periodEditor = document.getElementById('period-editor') as HTMLElement;
+  const prevBtn = document.getElementById('prev-year-btn') as HTMLButtonElement;
+  const nextBtn = document.getElementById('next-year-btn') as HTMLButtonElement;
+  const addBtn = document.getElementById('add-year-btn') as HTMLButtonElement;
+  const removeBtn = document.getElementById('remove-year-btn') as HTMLButtonElement;
+  const shareBtn = document.getElementById('share-btn') as HTMLButtonElement;
+  const label = document.getElementById('current-years-label') as HTMLSpanElement;
 
-  // Modal Elements
-  const modal = document.getElementById('color-picker-modal') as HTMLDivElement;
-  const closeBtn = modal?.querySelector('.close') as HTMLSpanElement;
-  const colorInput = document.getElementById('color-input') as HTMLInputElement;
-  const applyColorBtn = document.getElementById(
-    'apply-color'
-  ) as HTMLButtonElement;
-
-  // Validate all elements exist
   if (
-    !configInput ||
-    !saveButton ||
     !calendarContainer ||
-    !timezoneSelect ||
-    !modal ||
-    !closeBtn ||
-    !colorInput ||
-    !applyColorBtn
+    !periodEditor ||
+    !prevBtn ||
+    !nextBtn ||
+    !addBtn ||
+    !removeBtn ||
+    !shareBtn ||
+    !label
   ) {
     console.error('[Init] Missing required DOM elements');
     return;
   }
 
-  // Create elements object
   const elements: CalendarAppElements = {
-    configInput,
-    saveButton,
     calendarContainer,
-    timezoneSelect,
-    colorPicker: {
-      modal,
-      closeBtn,
-      colorInput,
-      applyColorBtn
-    }
+    periodEditor,
+    yearNav: { prevBtn, nextBtn, addBtn, removeBtn, shareBtn, label }
   };
 
-  // Initialize application
   const app = new CalendarApp(elements);
   app.init();
 }

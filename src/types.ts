@@ -39,15 +39,10 @@ export type CompressedPeriod =
   | [number[], string, string?] // [dates array, color, label?] for multiple dates
   | (string | number)[]; // flexible array type for mixed content
 
-// DOM Element Types
-export interface DOMElements {
-  configInput: HTMLTextAreaElement;
-  saveButton: HTMLButtonElement;
-  calendarContainer: HTMLDivElement;
-  modal: HTMLDivElement;
-  closeBtn: HTMLSpanElement;
-  colorInput: HTMLInputElement;
-  applyColorBtn: HTMLButtonElement;
+// Selection Types
+export interface DateRange {
+  start: string; // ISO date "YYYY-MM-DD"
+  end: string;   // ISO date "YYYY-MM-DD"
 }
 
 // Calendar Generation Types
