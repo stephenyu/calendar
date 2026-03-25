@@ -6,6 +6,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,400,0,0" rel="stylesheet" />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
@@ -30,15 +31,16 @@
           </div>
           <div class="sp-body">
             <div class="sp-title">CURRENT SELECTION</div>
-            <div class="sp-stats" id="selection-stats">Selected: 0 days</div>
+            <div class="sp-stats" id="selection-stats">0 days</div>
           </div>
           <div class="sp-divider"></div>
           <div class="sp-editor">
             <input type="text" id="editor-name" placeholder="Add a label..." autocomplete="off" />
             <input type="color" id="editor-color" value="#e63946" />
-            <button id="editor-confirm">Add Period</button>
+            <button id="editor-remove-weekends" title="Remove weekends from selection"><span class="material-symbols-rounded">weekend</span></button>
+            <button id="editor-confirm"><span class="material-symbols-rounded">add_circle</span></button>
           </div>
-          <button id="editor-cancel">Clear</button>
+          <button id="editor-cancel"><span class="material-symbols-rounded">cancel</span></button>
         </div>
 
       </div>

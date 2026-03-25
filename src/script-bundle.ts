@@ -38,10 +38,6 @@ interface NormalizedPeriod extends HighlightPeriod {
   dateObjects?: Date[];
 }
 
-interface DateRange {
-  start: string;
-  end: string;
-}
 
 type CompressedData = [number[], CompressedPeriod[], string?];
 
@@ -193,15 +189,23 @@ function getTextColor(colors: string[]): string {
 // SELECTION STATS
 // ============================================================================
 
-function countSelectionStats(lo: string, hi: string): { total: number; workdays: number; weekends: number } {
+function enumerateDates(lo: string, hi: string): string[] {
+  const dates: string[] = [];
   const cur = new Date(lo + 'T12:00:00');
   const end = new Date(hi + 'T12:00:00');
-  let total = 0, workdays = 0, weekends = 0;
   while (cur <= end) {
-    total++;
-    const day = cur.getDay();
-    (day === 0 || day === 6) ? weekends++ : workdays++;
+    dates.push(cur.toISOString().split('T')[0]!);
     cur.setDate(cur.getDate() + 1);
+  }
+  return dates;
+}
+
+function countSelectionStats(dates: string[]): { total: number; workdays: number; weekends: number } {
+  let total = 0, workdays = 0, weekends = 0;
+  for (const d of dates) {
+    total++;
+    const day = new Date(d + 'T12:00:00').getDay();
+    (day === 0 || day === 6) ? weekends++ : workdays++;
   }
   return { total, workdays, weekends };
 }
@@ -476,6 +480,7 @@ function initializeTooltips(container: HTMLDivElement, isDragging?: () => boolea
 
 class DragSelector {
   private _isDragging = false;
+  private _mode: 'select' | 'erase' | 'exclude' = 'select';
   private startDate: string | null = null;
   private endDate: string | null = null;
 
@@ -491,12 +496,16 @@ class DragSelector {
     document.addEventListener('mouseleave', this.handleDocumentLeave.bind(this));
   }
 
-  startDrag(dateStr: string): void {
+  startDrag(dateStr: string, mode: 'select' | 'erase' | 'exclude' = 'select'): void {
     this._isDragging = true;
+    this._mode = mode;
     this.startDate = dateStr;
     this.endDate = dateStr;
     this.updateClasses();
   }
+
+  get isEraseMode(): boolean { return this._mode === 'erase'; }
+  get isExcludeMode(): boolean { return this._mode === 'exclude'; }
 
   continueDrag(dateStr: string): void {
     if (!this._isDragging) return;
@@ -533,13 +542,26 @@ class DragSelector {
   private updateClasses(): void {
     if (!this.startDate || !this.endDate) return;
     const [lo, hi] = [this.startDate, this.endDate].sort();
+    if (this._mode === 'exclude') {
+      this.container.querySelectorAll<HTMLTableCellElement>('td.day-cell[data-date]').forEach(cell => {
+        cell.classList.remove('drag-selecting', 'drag-erasing');
+        const inRange = cell.dataset.date! >= lo && cell.dataset.date! <= hi;
+        cell.classList.toggle('drag-excluding', inRange && cell.classList.contains('color-preview'));
+      });
+      return;
+    }
+    const cls = this._mode === 'erase' ? 'drag-erasing' : 'drag-selecting';
+    const other = this._mode === 'erase' ? 'drag-selecting' : 'drag-erasing';
     this.container.querySelectorAll<HTMLTableCellElement>('td.day-cell[data-date]').forEach(cell => {
-      cell.classList.toggle('drag-selecting', cell.dataset.date! >= lo && cell.dataset.date! <= hi);
+      cell.classList.remove(other);
+      cell.classList.toggle(cls, cell.dataset.date! >= lo && cell.dataset.date! <= hi);
     });
   }
 
   private clearClasses(): void {
-    this.container.querySelectorAll('td.drag-selecting').forEach(c => c.classList.remove('drag-selecting'));
+    this.container.querySelectorAll('td.drag-selecting,td.drag-erasing,td.drag-excluding').forEach(c => {
+      c.classList.remove('drag-selecting', 'drag-erasing', 'drag-excluding');
+    });
   }
 }
 
@@ -552,7 +574,7 @@ class CalendarApp {
   private periods: HighlightPeriod[];
   private timezone: string;
   private dragSelector!: DragSelector;
-  private currentSelection: DateRange | null = null;
+  private selectedDates: Set<string> = new Set();
 
   // DOM refs
   private calendarContainer!: HTMLDivElement;
@@ -563,6 +585,7 @@ class CalendarApp {
   private editorColor!: HTMLInputElement;
   private editorConfirm!: HTMLButtonElement;
   private editorCancel!: HTMLButtonElement;
+  private editorRemoveWeekends!: HTMLButtonElement;
   private prevBtn!: HTMLButtonElement;
   private nextBtn!: HTMLButtonElement;
 
@@ -584,50 +607,164 @@ class CalendarApp {
     this.editorColor = document.getElementById('editor-color') as HTMLInputElement;
     this.editorConfirm = document.getElementById('editor-confirm') as HTMLButtonElement;
     this.editorCancel = document.getElementById('editor-cancel') as HTMLButtonElement;
+    this.editorRemoveWeekends = document.getElementById('editor-remove-weekends') as HTMLButtonElement;
     this.prevBtn = document.getElementById('prev-year-btn') as HTMLButtonElement;
     this.nextBtn = document.getElementById('next-year-btn') as HTMLButtonElement;
   }
 
   private setupDragSelector(): void {
     this.dragSelector = new DragSelector(this.calendarContainer, {
-      onDragEnd: (start, end) => this.showSelectionPanel(start, end),
-      onDragMove: (start, end) => this.showSelectionPanel(start, end),
-      onDragCancel: () => this.clearSelection()
+      onDragEnd: (start, end) => {
+        if (this.dragSelector.isExcludeMode) {
+          const [lo, hi] = [start, end].sort();
+          enumerateDates(lo, hi).forEach(d => this.selectedDates.delete(d));
+          this.dragSelector.clearSelection();
+          this.applyColorPreview();
+          this.updateSelectionStats();
+          if (this.selectedDates.size === 0) {
+            this.selectionPanel.setAttribute('hidden', '');
+          } else {
+            this.selectionPanel.removeAttribute('hidden');
+          }
+        } else if (this.dragSelector.isEraseMode) {
+          this.handleErasePeriods(start, end);
+        } else {
+          const [lo, hi] = [start, end].sort();
+          enumerateDates(lo, hi).forEach(d => this.selectedDates.add(d));
+          this.applyColorPreview();
+          this.updateSelectionStats();
+          this.selectionPanel.removeAttribute('hidden');
+        }
+      },
+      onDragMove: (start, end) => {
+        if (!this.dragSelector.isEraseMode && !this.dragSelector.isExcludeMode) {
+          const [lo, hi] = [start, end].sort();
+          const dragDates = enumerateDates(lo, hi);
+          const combined = new Set([...this.selectedDates, ...dragDates]);
+          this.updateSelectionStatsFromDates(combined);
+          this.selectionPanel.removeAttribute('hidden');
+        }
+      },
+      onDragCancel: () => {
+        if (!this.dragSelector.isExcludeMode) {
+          this.clearSelection();
+        }
+      }
     });
   }
 
   private setupEventListeners(): void {
     this.editorConfirm.addEventListener('click', () => this.handleAddPeriod());
     this.editorCancel.addEventListener('click', () => this.clearSelection());
+    this.editorColor.addEventListener('input', () => this.applyColorPreview());
+    this.editorRemoveWeekends.addEventListener('click', () => this.handleRemoveWeekends());
 
     this.prevBtn.addEventListener('click', () => { this.years = this.years.map(y => y - 1); this.render(); });
     this.nextBtn.addEventListener('click', () => { this.years = this.years.map(y => y + 1); this.render(); });
   }
 
-  private showSelectionPanel(start: string, end: string): void {
-    this.currentSelection = { start, end };
-    const [lo, hi] = [start, end].sort();
-    const s = countSelectionStats(lo, hi);
+  private applyColorPreview(): void {
+    const color = this.editorColor.value;
+    this.calendarContainer.querySelectorAll<HTMLTableCellElement>(
+      'td.color-preview,td.drag-selecting,td.drag-excluding'
+    ).forEach(cell => {
+      cell.style.background = '';
+      cell.style.color = '';
+      cell.classList.remove('color-preview', 'drag-selecting', 'drag-excluding');
+    });
+    this.calendarContainer.querySelectorAll<HTMLTableCellElement>('td.day-cell[data-date]').forEach(cell => {
+      if (this.selectedDates.has(cell.dataset.date!)) {
+        cell.classList.add('color-preview');
+        cell.style.background = color;
+        cell.style.color = getTextColor([color]);
+      }
+    });
+  }
+
+  private updateSelectionStats(): void {
+    this.updateSelectionStatsFromDates(this.selectedDates);
+  }
+
+  private updateSelectionStatsFromDates(dates: Set<string>): void {
+    const s = countSelectionStats([...dates]);
     this.selectionStats.textContent =
-      `Selected: ${s.total} day${s.total !== 1 ? 's' : ''} | ${s.workdays} Workday${s.workdays !== 1 ? 's' : ''} | ${s.weekends} Weekend${s.weekends !== 1 ? 's' : ''}`;
-    this.selectionPanel.removeAttribute('hidden');
+      `${s.total} day${s.total !== 1 ? 's' : ''} | ${s.workdays} Workday${s.workdays !== 1 ? 's' : ''} | ${s.weekends} Weekend${s.weekends !== 1 ? 's' : ''}`;
+  }
+
+  private handleRemoveWeekends(): void {
+    this.selectedDates.forEach(d => {
+      const day = new Date(d + 'T12:00:00').getDay();
+      if (day === 0 || day === 6) this.selectedDates.delete(d);
+    });
+    this.applyColorPreview();
+    this.updateSelectionStats();
+    if (this.selectedDates.size === 0) this.selectionPanel.setAttribute('hidden', '');
   }
 
   private clearSelection(): void {
-    this.currentSelection = null;
+    this.selectedDates.clear();
+    this.calendarContainer.querySelectorAll<HTMLTableCellElement>('td.color-preview').forEach(cell => {
+      cell.style.background = '';
+      cell.style.color = '';
+      cell.classList.remove('color-preview');
+    });
     this.dragSelector.clearSelection();
     this.selectionPanel.setAttribute('hidden', '');
     this.editorName.value = '';
   }
 
   private handleAddPeriod(): void {
-    if (!this.currentSelection) return;
-    const [lo, hi] = [this.currentSelection.start, this.currentSelection.end].sort();
+    if (this.selectedDates.size === 0) return;
+    const dates = [...this.selectedDates].sort();
     const color = this.editorColor.value;
     const label = this.editorName.value.trim() || undefined;
-    const period: HighlightPeriod = lo === hi ? { dates: [lo], color, label } : { start: lo, end: hi, color, label };
+    let period: HighlightPeriod;
+    if (dates.length === 1) {
+      period = { dates, color, label };
+    } else {
+      const contiguous = enumerateDates(dates[0]!, dates[dates.length - 1]!);
+      period = contiguous.length === dates.length
+        ? { start: dates[0]!, end: dates[dates.length - 1]!, color, label }
+        : { dates, color, label };
+    }
     this.periods.push(period);
     this.clearSelection();
+    this.render();
+  }
+
+  private isDateHighlighted(dateStr: string): boolean {
+    return this.periods.some(p => {
+      if (p.start && p.end) return dateStr >= p.start && dateStr <= p.end;
+      if (p.dates) return p.dates.includes(dateStr);
+      return false;
+    });
+  }
+
+  private handleErasePeriods(start: string, end: string): void {
+    const [lo, hi] = [start, end].sort();
+    const addDays = (dateStr: string, n: number): string => {
+      const d = new Date(dateStr + 'T12:00:00');
+      d.setDate(d.getDate() + n);
+      return d.toISOString().split('T')[0]!;
+    };
+    const newPeriods: HighlightPeriod[] = [];
+    for (const p of this.periods) {
+      if (p.start && p.end) {
+        if (p.end < lo || p.start > hi) {
+          newPeriods.push(p);
+        } else {
+          if (p.start < lo) newPeriods.push({ ...p, end: addDays(lo, -1) });
+          if (p.end > hi) newPeriods.push({ ...p, start: addDays(hi, 1) });
+        }
+      } else if (p.dates) {
+        const remaining = p.dates.filter(d => d < lo || d > hi);
+        if (remaining.length > 0) newPeriods.push({ ...p, dates: remaining });
+      } else {
+        newPeriods.push(p);
+      }
+    }
+    this.periods = newPeriods;
+    this.dragSelector.clearSelection();
     this.render();
   }
 
@@ -648,8 +785,14 @@ class CalendarApp {
 
     const dragCallbacks: DragCallbacks = {
       onDragStart: (dateStr) => {
-        this.dragSelector.startDrag(dateStr);
-        this.showSelectionPanel(dateStr, dateStr);
+        const cell = this.calendarContainer.querySelector<HTMLTableCellElement>(`td.day-cell[data-date="${dateStr}"]`);
+        const isInSelection = cell?.classList.contains('color-preview') ?? false;
+        if (isInSelection) {
+          this.dragSelector.startDrag(dateStr, 'exclude');
+        } else {
+          const erase = this.isDateHighlighted(dateStr);
+          this.dragSelector.startDrag(dateStr, erase ? 'erase' : 'select');
+        }
       },
       onDragMove: (dateStr) => this.dragSelector.continueDrag(dateStr)
     };

@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/calendar/',
+  base: '/',
   build: {
     outDir: 'dist',
     emptyOutDir: true,
