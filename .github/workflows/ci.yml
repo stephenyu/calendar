@@ -81,6 +81,8 @@ jobs:
 
       - name: Build project
         run: npm run build
+        env:
+          GITHUB_PAGES: true
 
       - name: Add .nojekyll file
         run: touch dist/.nojekyll
