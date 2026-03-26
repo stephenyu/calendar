@@ -13,7 +13,8 @@ import { NormalizedPeriod } from '../src/types';
 jest.mock('../src/utils/GradientUtils', () => ({
   generateGradient: jest.fn((colors: string[]) => {
     return colors.length > 0 ? `gradient(${colors.join(',')})` : '';
-  })
+  }),
+  getTextColor: jest.fn(() => 'white')
 }));
 
 jest.mock('../src/core/CalendarGenerator', () => ({
@@ -175,6 +176,86 @@ describe('CalendarRenderer', () => {
         expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
         'Australia/Sydney'
       );
+    });
+  });
+
+  describe('createGlobalLegend (via renderCalendar)', () => {
+    it('should render a global legend when periods and onDeletePeriod are provided', () => {
+      const container = document.getElementById('calendar-container') as HTMLDivElement;
+      const onDelete = jest.fn();
+      const periods = [{ color: '#ff0000', label: 'Vacation', start: '2024-01-01', end: '2024-01-07' }];
+
+      renderCalendar(container, [2024], periods, 'UTC', undefined, onDelete);
+
+      const legend = container.querySelector('.legend');
+      expect(legend).toBeTruthy();
+    });
+
+    it('should not render a global legend when onDeletePeriod is not provided', () => {
+      const container = document.getElementById('calendar-container') as HTMLDivElement;
+      const periods = [{ color: '#ff0000', label: 'Vacation', start: '2024-01-01', end: '2024-01-07' }];
+
+      renderCalendar(container, [2024], periods, 'UTC');
+
+      const legend = container.querySelector('.legend');
+      expect(legend).toBeNull();
+    });
+
+    it('should render one legend item per period', () => {
+      const container = document.getElementById('calendar-container') as HTMLDivElement;
+      const onDelete = jest.fn();
+      const periods = [
+        { color: '#ff0000', label: 'Vacation', start: '2024-01-01', end: '2024-01-07' },
+        { color: '#00ff00', label: 'Holiday', start: '2024-02-01', end: '2024-02-07' },
+      ];
+
+      renderCalendar(container, [2024], periods, 'UTC', undefined, onDelete);
+
+      const items = container.querySelectorAll('.legend-item');
+      expect(items.length).toBe(2);
+    });
+
+    it('should show period label or fallback text in legend item', () => {
+      const container = document.getElementById('calendar-container') as HTMLDivElement;
+      const onDelete = jest.fn();
+      const periods = [
+        { color: '#ff0000', label: 'Vacation', start: '2024-01-01', end: '2024-01-07' },
+        { color: '#00ff00', start: '2024-02-01', end: '2024-02-07' }, // no label
+      ];
+
+      renderCalendar(container, [2024], periods, 'UTC', undefined, onDelete);
+
+      const items = container.querySelectorAll('.legend-item span');
+      expect(items[0]?.textContent).toBe('Vacation');
+      expect(items[1]?.textContent).toBe('Period 2');
+    });
+
+    it('should call onDeletePeriod with the correct index when delete button is clicked', () => {
+      const container = document.getElementById('calendar-container') as HTMLDivElement;
+      const onDelete = jest.fn();
+      const periods = [
+        { color: '#ff0000', label: 'Vacation', start: '2024-01-01', end: '2024-01-07' },
+        { color: '#00ff00', label: 'Holiday', start: '2024-02-01', end: '2024-02-07' },
+      ];
+
+      renderCalendar(container, [2024], periods, 'UTC', undefined, onDelete);
+
+      const deleteButtons = container.querySelectorAll<HTMLButtonElement>('.legend-delete');
+      deleteButtons[1]?.click();
+
+      expect(onDelete).toHaveBeenCalledWith(1);
+    });
+
+    it('should render a delete button for each legend item', () => {
+      const container = document.getElementById('calendar-container') as HTMLDivElement;
+      const onDelete = jest.fn();
+      const periods = [{ color: '#ff0000', label: 'Vacation', start: '2024-01-01', end: '2024-01-07' }];
+
+      renderCalendar(container, [2024], periods, 'UTC', undefined, onDelete);
+
+      const deleteBtn = container.querySelector('.legend-delete');
+      expect(deleteBtn).toBeTruthy();
+      expect(deleteBtn?.textContent).toBe('×');
     });
   });
 
